@@ -1,0 +1,4 @@
+recursive-include bnn/bitstreams *
+recursive-include bnn/libraries *
+recursive-include bnn/params *
+recursive-include bnn/Test_image *
