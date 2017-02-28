@@ -51,7 +51,7 @@ setup(
     package_data = {
     '' : ['*.bit','*.tcl','*.so','*.bin','*.txt'],
     },    
-    data_files = [('/home/xilinx/jupyter_notebooks/bnn', [os.path.join(root, f) for root, dirs, files in os.walk('notebooks/') for f in files])],
-    #data_files = [('/home/xilinx/jupyter_notebooks/bnn',[(root, [os.path.join(root, f) for f in files]) for root, dirs, files in os.walk('notebooks/')])],
+    data_files = [(os.path.join('/home/xilinx/jupyter_notebooks/bnn',root.replace('notebooks/','')), [os.path.join(root, f) for f in files]) for root, dirs, files in os.walk('notebooks/')],
+    #data_files = [('/home/xilinx/jupyter_notebooks/bnn', [os.path.join(root, f) for root, dirs, files in os.walk('notebooks/') for f in files])],
     description = "Classification using a hardware accelerated binary neural network"
 )
