@@ -34,10 +34,13 @@ import shutil
 import bnn
 import os
 from glob import glob
+import site 
 
 if 'BOARD' not in os.environ or os.environ['BOARD'] != 'Pynq-Z1':
     print("Only supported on a Pynq Z1 Board")
     exit(1)
+
+
 
 setup(
     name = "bnn-pynq",
@@ -49,9 +52,29 @@ setup(
     include_package_data = True,
     packages = ['bnn'],
     package_data = {
-    '' : ['*.bit','*.tcl','*.so','*.bin','*.txt'],
+    '' : ['*.bit','*.tcl','*.so','*.bin','*.txt', '*.cpp', '*.h', '*.sh'],
     },    
     data_files = [(os.path.join('/home/xilinx/jupyter_notebooks/bnn',root.replace('notebooks/','')), [os.path.join(root, f) for f in files]) for root, dirs, files in os.walk('notebooks/')],
-    #data_files = [('/home/xilinx/jupyter_notebooks/bnn', [os.path.join(root, f) for root, dirs, files in os.walk('notebooks/') for f in files])],
+    #data_files = [(os.path.join('/home/xilinx/jupyter_notebooks/bnn',root.replace('notebooks/','')), [os.path.join(root, f) for f in files]) for root, dirs, files in os.walk('bnn/src/')],
     description = "Classification using a hardware accelerated binary neural network"
+   
 )
+
+
+def run_make(src_path, network, output_type):
+    status = subprocess.check_call(["bash", src_path + "/make-sw.sh", network, output_type])
+    if status is not 0:
+        print("Error while running make for",network,output_type,"Exiting..")
+        exit(1)
+    shutil.copyfile( src_path + "/output/sw/" + output_type + "-" + network + ".so", src_path + "../../libraries/" +  output_type + "-" + network + ".so")
+
+if len(sys.argv) > 1 and sys.argv[1] == 'install' and 'VIVADOHLS_INCLUDE_PATH' in os.environ:
+   os.environ["XILINX_BNN_ROOT"] = site.getsitepackages()[0] + "/bnn/src/"
+   XILINX_BNN_ROOT=site.getsitepackages()[0]
+   #BNN_ROOT_DIR = os.path.dirname(os.path.realpath(__file__))
+   run_make(XILINX_BNN_ROOT+"/bnn/src/network/", "cnv-pynq" ,"python_sw")
+   run_make(XILINX_BNN_ROOT+"/bnn/src/network/", "lfc-pynq" ,"python_sw")
+   run_make(XILINX_BNN_ROOT+"/bnn/src/network/", "cnv-pynq" ,"python_hw")
+   run_make(XILINX_BNN_ROOT+"/bnn/src/network/", "lfc-pynq" ,"python_hw")
+else:
+  print("VIVADOHLS_INCLUDE_PATH variable not set, the source will not be recompiled.",file=sys.stdout)
