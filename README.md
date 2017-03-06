@@ -11,6 +11,9 @@ sudo pip3.6 install git+https://github.com/Xilinx/BNN-PYNQ.git (on PYNQ v1.4)
 
 sudo pip3.4 install git+https://github.com/Xilinx/BNN-PYNQ.git (on PYNQ v1.3)
 
+In order to build the shared object during installation, the user should copy the include folder from VIVADO HLS on the PYNQ board (in windows in vivado-path/Vivado_HLS/201x.y/include, /vivado-path/Vidado_HLS/201x.y/include in unix) and set the environment variable VIVADOHLS_INCLUDE_PATH to the location in which the folder has been copied.
+If the env variable is not set, the precompiled version will be used instead. 
+ 
 ## Repo organization 
 
 The repo is organized as follows:
