@@ -33,21 +33,17 @@ The repo is organized as follows:
 In order to rebuild the hardware designs, the repo should be cloned in a machine with installation of the Vivado Design Suite (tested with 2016.1). 
 Following the step-by-step instructions:
 
-1)	Clone the repository on your linux machine: git clone https://github.com/Xilinx/BNN-PYNQ.git;
-2)	Move to `clone_path/BNN_PYNQ/bnn/src/network/`
-3)	Set the XILINX_BNN_ROOT environment variable to `clone_path/BNN_PYNQ/bnn/src/network/`
-4)	Launch the shell script make-hw.sh with parameters the target network, target platform and mode, with the command `./make-hw.sh {network} {platform} {mode}` where:
+1.	Clone the repository on your linux machine: git clone https://github.com/Xilinx/BNN-PYNQ.git;
+2.	Move to `clone_path/BNN_PYNQ/bnn/src/network/`
+3.	Set the XILINX_BNN_ROOT environment variable to `clone_path/BNN_PYNQ/bnn/src/network/`
+4.	Launch the shell script make-hw.sh with parameters the target network, target platform and mode, with the command `./make-hw.sh {network} {platform} {mode}` where:
 		- network can be cnv-pynq or lfc-pynq;
 		- platform is pynq;
 		- mode can be `h` to launch Vivado HLS synthesis, `b` to launch the Vivado project (needs HLS synthesis results), `a` to launch both.
-5)	The results will be visible in `clone_path/BNN_PYNQ/bnn/src/network/output/` that is organized as follows:
+5.	The results will be visible in `clone_path/BNN_PYNQ/bnn/src/network/output/` that is organized as follows:
 		- bitstream: contains the generated bitstream(s);
 		- hls-syn: contains the Vivado HLS generated RTL and IP (in the subfolder named as the target network);
 		- report: contains the Vivado and Vivado HLS reports;
 		- vivado: contains the Vivado project.
-6)	Copy the generated bitstream and tcl script on the PYNQ board `pip_installation_path/bnn/bitstreams/`
-
-
-
-
+6.	Copy the generated bitstream and tcl script on the PYNQ board `pip_installation_path/bnn/bitstreams/`
 
