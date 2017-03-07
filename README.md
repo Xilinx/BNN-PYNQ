@@ -35,7 +35,7 @@ Following the step-by-step instructions:
 
 1.	Clone the repository on your linux machine: git clone https://github.com/Xilinx/BNN-PYNQ.git;
 2.	Move to `clone_path/BNN_PYNQ/bnn/src/network/`
-3.	Set the XILINX_BNN_ROOT environment variable to `clone_path/BNN_PYNQ/bnn/src/network/`
+3.	Set the XILINX_BNN_ROOT environment variable to `clone_path/BNN_PYNQ/bnn/src/`
 4.	Launch the shell script make-hw.sh with parameters the target network, target platform and mode, with the command `./make-hw.sh {network} {platform} {mode}` where:
 	- network can be cnv-pynq or lfc-pynq;
 	- platform is pynq;
