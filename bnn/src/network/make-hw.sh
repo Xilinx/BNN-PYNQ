@@ -73,7 +73,7 @@ if [ -z "$PATH_TO_VIVADO_HLS" ]; then
     exit 1
 fi
 
-BNN_PATH=$XILINX_BNN_ROOT/bnn-pynq
+BNN_PATH=$XILINX_BNN_ROOT/network
 
 HLS_SRC_DIR="$BNN_PATH/$NETWORK/hw"
 HLS_OUT_DIR="$BNN_PATH/output/hls-syn/$NETWORK"
@@ -81,14 +81,16 @@ HLS_OUT_DIR="$BNN_PATH/output/hls-syn/$NETWORK"
 HLS_SCRIPT=$BNN_PATH/hls-syn.tcl
 HLS_IP_REPO="$HLS_OUT_DIR/sol1/impl/ip"
 
+VIVADO_HLS_LOG="$BNN_PATH/output/hls-syn/vivado_hls.log"
+
 HLS_REPORT_PATH="$HLS_OUT_DIR/sol1/syn/report/BlackBoxJam_csynth.rpt"
 REPORT_OUT_DIR="$BNN_PATH/output/report/$NETWORK"
 
 
-VIVADO_SCRIPT_DIR=$XILINX_BNN_ROOT/bnn-library/script/
+VIVADO_SCRIPT_DIR=$XILINX_BNN_ROOT/library/script/
 VIVADO_SCRIPT=$VIVADO_SCRIPT_DIR/make-vivado-proj.tcl
 
-# regenerate HLS jam if requested
+# regenerate HLS if requested
 if [[ ("$MODE" == "h") || ("$MODE" == "a")  ]]; then
   mkdir -p $HLS_OUT_DIR
   mkdir -p $REPORT_OUT_DIR
@@ -96,6 +98,14 @@ if [[ ("$MODE" == "h") || ("$MODE" == "a")  ]]; then
   echo "Calling Vivado HLS for hardware synthesis..."
   cd $HLS_OUT_DIR/..
   vivado_hls -f $HLS_SCRIPT -tclargs $NETWORK $HLS_SRC_DIR
+  if cat $VIVADO_HLS_LOG | grep "ERROR"; then
+    echo "Error in Vivado_HLS"
+    exit 1	
+  fi
+  if cat $VIVADO_HLS_LOG | grep "CRITICAL WARNING"; then
+    echo "Critical warning in Vivado_HLS"
+    exit 1	
+  fi
   cat $HLS_REPORT_PATH | grep "Utilization Estimates" -A 20 > $REPORT_OUT_DIR/hls.txt
   cat $REPORT_OUT_DIR/hls.txt
   echo "HLS synthesis complete"
@@ -110,7 +120,7 @@ VIVADO_OUT_DIR="$BNN_PATH/output/vivado/$TARGET_NAME"
 BITSTREAM_PATH="$BNN_PATH/output/bitstream"
 TARGET_BITSTREAM="$BITSTREAM_PATH/$NETWORK-$PLATFORM.bit"
 TARGET_TCL="$BITSTREAM_PATH/$NETWORK-$PLATFORM.tcl"
-FREQ="200.0"
+FREQ="100.0"
 
 
 if [[ ("$MODE" == "b") || ("$MODE" == "a")  ]]; then
@@ -127,9 +137,9 @@ if [[ ("$MODE" == "b") || ("$MODE" == "a")  ]]; then
     fi
   rm -rf $VIVADO_OUT_DIR
   fi
-  vivado -mode batch -source $VIVADO_SCRIPT -tclargs $HLS_IP_REPO $TARGET_NAME $VIVADO_OUT_DIR $VIVADO_SCRIPT_DIR
+  vivado -mode batch -notrace -source $VIVADO_SCRIPT -tclargs $HLS_IP_REPO $TARGET_NAME $VIVADO_OUT_DIR $VIVADO_SCRIPT_DIR
   cp -f "$VIVADO_OUT_DIR/$TARGET_NAME.runs/impl_1/procsys_wrapper.bit" $TARGET_BITSTREAM
-  cp -f "$VIVADO_OUT_DIR/$TARGET_NAME.runs/impl_1/procsys.tcl" $TARGET_TCL
+  cp -f "$VIVADO_OUT_DIR/$TARGET_NAME.runs/impl_1/procsys_wrapper.tcl" $TARGET_TCL
   # extract parts of the post-implementation reports
   cat "$VIVADO_OUT_DIR/$TARGET_NAME.runs/impl_1/procsys_wrapper_timing_summary_routed.rpt" | grep "| Design Timing Summary" -B 3 -A 10 > $REPORT_OUT_DIR/vivado.txt
   cat "$VIVADO_OUT_DIR/$TARGET_NAME.runs/impl_1/procsys_wrapper_utilization_placed.rpt" | grep "Slice LUTs" -B 3 -A 10 >> $REPORT_OUT_DIR/vivado.txt
@@ -141,3 +151,5 @@ if [[ ("$MODE" == "b") || ("$MODE" == "a")  ]]; then
 fi
 
 echo "Done!"
+
+exit 0

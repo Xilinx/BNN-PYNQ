@@ -44,7 +44,7 @@ set config_proj_name [lindex $argv 2]
 puts "HLS project: $config_proj_name"
 set config_hwsrcdir [lindex $argv 3]
 puts "HW source dir: $config_hwsrcdir"
-set config_bnnlibdir "$::env(XILINX_BNN_ROOT)/bnn-library/hls"
+set config_bnnlibdir "$::env(XILINX_BNN_ROOT)/library/hls"
 puts "BNN library: $config_bnnlibdir"
 
 set config_toplevelfxn "BlackBoxJam"

@@ -107,7 +107,7 @@ set_property STEPS.PHYS_OPT_DESIGN.ARGS.DIRECTIVE AggressiveExplore [get_runs im
 set_property STEPS.POST_ROUTE_PHYS_OPT_DESIGN.IS_ENABLED true [get_runs impl_1]
 
 
-launch bitstream generation
+# launch bitstream generation
 launch_runs impl_1 -to_step write_bitstream -jobs 2
 wait_on_run impl_1
 
