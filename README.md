@@ -3,6 +3,19 @@
 This repo contains the pip install package for Binarized Neural Network (BNN) on PYNQ. 
 Two different overlays are here included, namely CNV and LFC as described in the <a href="https://arxiv.org/abs/1612.07119" target="_blank"> FINN Paper </a>. 
 
+## Citation
+If you find BNN-PYNQ useful, please cite the <a href="https://arxiv.org/abs/1612.07119" target="_blank">FINN Paper</a>:
+
+@inproceedings{finn,
+ author = {Umuroglu, Yaman and Fraser, Nicholas J. and Gambardella, Giulio and Blott, Michaela and Leong, Philip and Jahre, Magnus and Vissers, Kees},
+ title = {FINN: A Framework for Fast, Scalable Binarized Neural Network Inference},
+ booktitle = {Proceedings of the 2017 ACM/SIGDA International Symposium on Field-Programmable Gate Arrays},
+ series = {FPGA '17},
+ year = {2017},
+ pages = {65--74},
+ publisher = {ACM},
+} 
+
 ## Quick Start
 
 In order to install it your PYNQ, connect to the board, open a terminal and type:
