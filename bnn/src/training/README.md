@@ -71,7 +71,7 @@ In order to load them into the [Pynq BNN Overlay](https://github.com/Xilinx/BNN-
     $ python DATASET-gen-binary-weights.py
 ```
 
-These scripts will process the weights for the given dataset and and place them into a new directory.
+These scripts will process the weights for the given dataset and place them into a new directory.
 In order to load these weights on the Pynq, place the resultant folder into the XILINX_BNN_ROOT/data directory on the Pynq device.
 
 ## Installing the Training Environment:
@@ -205,7 +205,7 @@ Alternatively, you can install the packages into your user's site packages locat
     ```bash
     $ export PYLEARN2_DATA_PATH=~/.pylearn2
     $ mkdir -p ~/.pylearn2
-    $ cd pylearn2/pylearn2/script/datasets
+    $ cd pylearn2/pylearn2/scripts/datasets
     $ python download_mnist.py
     $ ./download_cifar10.sh
     $ cd ../../..
