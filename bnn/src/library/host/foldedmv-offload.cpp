@@ -133,7 +133,8 @@ std::vector<unsigned int> testPrebinarized_nolabel(std::vector<vec_t> & imgs, co
   auto t2 = chrono::high_resolution_clock::now();
   TRANSFER_EXCL(thePlatform->copyBufferAccelToHost(accelBufOut, (void *)outLabel, sizeof(ExtMemWord)*count*psl));
   // compare against labels
-  long long unsigned int mask_output = pow(2, labelBits)-1;
+  uint64_t mask_output=0xFFFFFFFFFFFFFFFF;
+  mask_output = mask_output>> (64-labelBits);
   for(unsigned int i = 0; i < count; i++) {
 	  outLabel[i*psl]=outLabel[i*psl]&mask_output;
   }
@@ -191,7 +192,8 @@ std::vector<unsigned int> testPrebinarized_nolabel_multiple_images(std::vector<v
   auto t2 = chrono::high_resolution_clock::now();
   TRANSFER_EXCL(thePlatform->copyBufferAccelToHost(accelBufOut, (void *)outLabel, sizeof(ExtMemWord)*count*psl));
   // compare against labels
-  long long unsigned int mask_output = pow(2, labelBits)-1;
+  uint64_t mask_output=0xFFFFFFFFFFFFFFFF; // = uint64_t(uint64_t(1<<labelBits)-1);
+  mask_output = mask_output>> (64-labelBits);
   for(unsigned int i = 0; i < count; i++) {
     outLabel[i*psl]=outLabel[i*psl]&mask_output;
   }
@@ -250,7 +252,8 @@ void testPrebinarized(std::vector<vec_t> & imgs, std::vector<label_t> & labels, 
   auto t2 = chrono::high_resolution_clock::now();
   TRANSFER_EXCL(thePlatform->copyBufferAccelToHost(accelBufOut, (void *)outLabel, sizeof(ExtMemWord)*count*psl));
   // compare against labels
-  long long unsigned int mask_output = pow(2, labelBits)-1;
+  uint64_t mask_output=0xFFFFFFFFFFFFFFFF; // = uint64_t(uint64_t(1<<labelBits)-1);
+  mask_output = mask_output>> (64-labelBits);
   for(unsigned int i = 0; i < count; i++) {
       outLabel[i*psl]=outLabel[i*psl]&mask_output;
       if(memcmp(&outLabel[i*psl], &binLabels[i*psl], psl * sizeof(ExtMemWord)) == 0)
