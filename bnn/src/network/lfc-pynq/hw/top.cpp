@@ -90,37 +90,45 @@ void DoMemInit(unsigned int targetLayer, unsigned int targetMem, unsigned int ta
 }
 
 void DoCompute(ap_uint<64> * in, ap_uint<64> * out, const unsigned int numReps) {
-	stream<ap_uint<64> > memInStrm("DoCompute.memInStrm");
-	stream<ap_uint<64> >  inter0("DoCompute.inter0");
-	stream<ap_uint<64> > inter1("DoCompute.inter1");
-	stream<ap_uint<64> >  inter2("DoCompute.inter2");
-	stream<ap_uint<64> >  memOutStrm("DoCompute.memOutStrm");
 
+  hls::stream<ap_uint<64>>     memInStrm("DoCompute.memInStrm");
+  hls::stream<ap_uint<L0_PE>>  inter0("DoCompute.inter0");
+  hls::stream<ap_uint<L1_PE>>  inter1("DoCompute.inter1");
+  hls::stream<ap_uint<L2_PE>>  inter2("DoCompute.inter2");
+  hls::stream<ap_uint<64>>     memOutStrm("DoCompute.memOutStrm");
+
+  // TODO: These values are just for comparability and produce the same amount
+  //       of FIFO buffer as in the preceding design.
+  //       If the resources allow, these depths should eventually go up to
+  //       Lx_DEPTH = Lx_MH/Lx_PE for a smooth operation.
+  unsigned const  L0_DEPTH = 512 / L0_PE;
+  unsigned const  L1_DEPTH = 512 / L1_PE;
+  unsigned const  L2_DEPTH = 512 / L2_PE;
 #pragma HLS DATAFLOW
 #pragma HLS stream depth=1024 variable=memInStrm     	// mask memory latency
-#pragma HLS stream depth=8 variable=inter0
-#pragma HLS stream depth=8 variable=inter1
-#pragma HLS stream depth=8 variable=inter2
+#pragma HLS stream depth=L0_DEPTH variable=inter0
+#pragma HLS stream depth=L1_DEPTH variable=inter1
+#pragma HLS stream depth=L2_DEPTH variable=inter2
 #pragma HLS stream depth=1024 variable=memOutStrm		// mask memory latency
 
-	const unsigned int inBits = 28*28;
-	const unsigned int inBitsPadded = 832; // paddedSizeHW(inBits, 64)
-	const unsigned int inBytesPadded = inBitsPadded/8;
-	const unsigned int outBits = 64;
-	const unsigned int outBitsPadded = 64; // paddedSizeHW(outBits, 64)
-	const unsigned int outBytesPadded = outBitsPadded/8;
-	const unsigned int inWordsPerImg = inBitsPadded / 64;
-	const unsigned int outWordsPerImg = outBitsPadded / 64;
+  const unsigned int inBits = 28*28;
+  const unsigned int inBitsPadded = 832; // paddedSizeHW(inBits, 64)
+  const unsigned int inBytesPadded = inBitsPadded/8;
+  const unsigned int outBits = 64;
+  const unsigned int outBitsPadded = 64; // paddedSizeHW(outBits, 64)
+  const unsigned int outBytesPadded = outBitsPadded/8;
+  const unsigned int inWordsPerImg = inBitsPadded / 64;
+  const unsigned int outWordsPerImg = outBitsPadded / 64;
 	
-	Mem2Stream_Batch<64, inBytesPadded>(in, memInStrm, numReps);
-  StreamingFCLayer_Batch<64, 64, L0_SIMD, L0_PE, 16, L0_MW, L0_MH, L0_WMEM, L0_TMEM>(
-		  memInStrm, inter0, weightMem0, thresMem0, numReps);
-  StreamingFCLayer_Batch<64, 64, L1_SIMD, L1_PE, 16, L1_MW, L1_MH, L1_WMEM, L1_TMEM>(
-		  inter0, inter1, weightMem1, thresMem1, numReps);
-  StreamingFCLayer_Batch<64, 64, L2_SIMD, L2_PE, 16, L2_MW, L2_MH, L2_WMEM, L2_TMEM>(
-		  inter1, inter2, weightMem2, thresMem2, numReps);
-  StreamingFCLayer_Batch<64, 64, L3_SIMD, L3_PE, 16, L3_MW, L3_MH, L3_WMEM, L3_TMEM>(
-		  inter2, memOutStrm, weightMem3, thresMem3, numReps);
+  Mem2Stream_Batch<64, inBytesPadded>(in, memInStrm, numReps);
+  StreamingFCLayer_Batch<64,    L0_PE, L0_SIMD, L0_PE, 16, L0_MW, L0_MH, L0_WMEM, L0_TMEM>
+    (memInStrm, inter0, weightMem0, thresMem0, numReps);
+  StreamingFCLayer_Batch<L0_PE, L1_PE, L1_SIMD, L1_PE, 16, L1_MW, L1_MH, L1_WMEM, L1_TMEM>
+    (inter0, inter1, weightMem1, thresMem1, numReps);
+  StreamingFCLayer_Batch<L1_PE, L2_PE, L2_SIMD, L2_PE, 16, L2_MW, L2_MH, L2_WMEM, L2_TMEM>
+    (inter1, inter2, weightMem2, thresMem2, numReps);
+  StreamingFCLayer_Batch<L2_PE,    64, L3_SIMD, L3_PE, 16, L3_MW, L3_MH, L3_WMEM, L3_TMEM>
+    (inter2, memOutStrm, weightMem3, thresMem3, numReps);
   Stream2Mem_Batch<64, outBytesPadded>(memOutStrm, out, numReps);
 }
 
