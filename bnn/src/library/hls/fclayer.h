@@ -53,17 +53,14 @@ void StreamingFCLayer_Batch(stream<ap_uint<InStreamW> > & in,
 		const ap_uint<PopCountWidth> thresMem[PECount][TMemCount],
 		const unsigned int numReps) {
 #pragma HLS INLINE
-	stream<ap_uint<SIMDWidth> > in2mvu("StreamingFCLayer_Batch.in2mvu");
-	stream<ap_uint<PECount> > mvu2out("StreamingFCLayer_Batch.mvu2out");
-	const unsigned int InpPerImage = MatrixW / InStreamW;
-	StreamingDataWidthConverter_Batch<InStreamW, SIMDWidth, InpPerImage>(in,
-			in2mvu, numReps);
-	StreamingMatrixVector_Batch<SIMDWidth, PECount, PopCountWidth, MatrixW,
-			MatrixH, WMemCount, TMemCount>(in2mvu, mvu2out, weightMem, thresMem,
-			numReps);
-	const unsigned int OutPerImage = MatrixH / PECount;
-	StreamingDataWidthConverter_Batch<PECount, OutStreamW, OutPerImage>(mvu2out,
-			out, numReps);
+  unsigned const  InpPerImage = MatrixW / InStreamW;
+  unsigned const  OutPerImage = MatrixH / PECount;
+
+  WidthAdjustedInputStream <InStreamW, SIMDWidth, InpPerImage>  wa_in (in,  numReps);
+  WidthAdjustedOutputStream<PECount,  OutStreamW, OutPerImage>  wa_out(out, numReps);
+
+  StreamingMatrixVector_Batch<SIMDWidth, PECount, PopCountWidth, MatrixW, MatrixH, WMemCount, TMemCount>
+    (wa_in, wa_out, weightMem, thresMem, numReps);
 }
 
 // helper function for fully connected layers with no activation

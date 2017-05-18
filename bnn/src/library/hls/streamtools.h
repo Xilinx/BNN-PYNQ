@@ -142,3 +142,67 @@ void StreamingDataWidthConverter_Batch(stream<ap_uint<InWidth> > & in,
 		}
 	}
 }
+
+template<unsigned IW, unsigned OW, unsigned N>
+ class WidthAdjustedInputStream {
+  hls::stream<ap_uint<OW>>  m_target;
+
+ public:
+  WidthAdjustedInputStream(hls::stream<ap_uint<IW> >&  source, unsigned const  reps) {
+    StreamingDataWidthConverter_Batch<IW, OW, N>(source, m_target, reps);
+  }
+  ~WidthAdjustedInputStream() {}
+
+ public:
+  operator hls::stream<ap_uint<OW> >&() {
+    return  m_target;
+  }
+};
+template<unsigned W, unsigned N>
+ class WidthAdjustedInputStream<W, W, N> {
+
+  hls::stream<ap_uint<W>> &m_source;
+
+ public:
+  WidthAdjustedInputStream(hls::stream<ap_uint<W> >&  source, unsigned const  reps) : m_source(source) {}
+  ~WidthAdjustedInputStream() {}
+
+ public:
+  operator hls::stream<ap_uint<W> >&() {
+    return  m_source;
+  }
+};
+
+
+template<unsigned IW, unsigned OW, unsigned N>
+ class WidthAdjustedOutputStream {
+  hls::stream<ap_uint<IW>>  m_buffer;
+  hls::stream<ap_uint<OW>> &m_target;
+  unsigned const  m_reps;
+
+ public:
+  WidthAdjustedOutputStream(hls::stream<ap_uint<OW> >&  target, unsigned const  reps)
+    : m_target(target), m_reps(reps) {}
+  ~WidthAdjustedOutputStream() {
+    StreamingDataWidthConverter_Batch<IW, OW, N>(m_buffer, m_target, m_reps);
+  }
+
+ public:
+  operator hls::stream<ap_uint<IW> >&() {
+    return  m_buffer;
+  }
+};
+template<unsigned W, unsigned N>
+ class WidthAdjustedOutputStream<W, W, N> {
+  hls::stream<ap_uint<W>> &m_target;
+
+ public:
+  WidthAdjustedOutputStream(hls::stream<ap_uint<W> >&  target, unsigned const  reps)
+    : m_target(target) {}
+  ~WidthAdjustedOutputStream() {}
+
+ public:
+  operator hls::stream<ap_uint<W> >&() {
+    return  m_target;
+  }
+};
