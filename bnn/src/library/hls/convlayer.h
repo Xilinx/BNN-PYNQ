@@ -54,35 +54,26 @@ template<
 		unsigned int PECount,			// number of PEs
 		unsigned int PopCountWidth, 	// number of bits for popcount
 		unsigned int WMemCount,			// entries in each PEs weight memory
-		unsigned int TMemCount,			// entries in each PEs threshold memory
-
-		// Padding arguments (optional)
-    unsigned int PadDim = 0         // Amount of padding to put around each image.
+		unsigned int TMemCount			// entries in each PEs threshold memory
 >
 void StreamingConvLayer_Batch(stream<ap_uint<IFMChannels> > & in,
 		stream<ap_uint<OFMChannels> > & out,
 		const ap_uint<SIMDWidth> weightMem[PECount][WMemCount],
 		const ap_uint<PopCountWidth> thresMem[PECount][TMemCount],
-		const unsigned int numReps,
-		const ap_uint<IFMChannels> padValue = 0) {
+		const unsigned int numReps) {
 	// compute weight matrix dimension from conv params
 	const unsigned int MatrixW = ConvKernelDim * ConvKernelDim * IFMChannels;
 	const unsigned int MatrixH = OFMChannels;
 
 #pragma HLS INLINE
 	stream<ap_uint<IFMChannels> > convInp("StreamingConvLayer_Batch.convInp");
-	stream<ap_uint<SIMDWidth> > mvIn("StreamingConvLayer_Batch.mvIn");
-	stream<ap_uint<PECount> > mvOut("StreamingConvLayer_Batch.mvOut");
+	WidthAdjustedOutputStream <PECount, OFMChannels, OFMDim * OFMDim * (OFMChannels / PECount)>  mvOut (out,  numReps);
 	StreamingConvolutionInputGenerator_Batch<ConvKernelDim, IFMChannels, IFMDim,
-			OFMDim, 1, PadDim>(in, convInp, numReps, padValue);
-	StreamingDataWidthConverter_Batch<IFMChannels, SIMDWidth,
-			OFMDim * OFMDim * ConvKernelDim * ConvKernelDim>(convInp, mvIn,
-			numReps);
+			OFMDim, 1>(in, convInp, numReps);
+	WidthAdjustedInputStream <IFMChannels, SIMDWidth, OFMDim * OFMDim * ConvKernelDim * ConvKernelDim>  mvIn (convInp,  numReps);
 	StreamingMatrixVector_Batch<SIMDWidth, PECount, PopCountWidth, MatrixW,
 			MatrixH, WMemCount, TMemCount>(mvIn, mvOut, weightMem, thresMem,
 			numReps * OFMDim * OFMDim);
-	StreamingDataWidthConverter_Batch<PECount, MatrixH,
-			OFMDim * OFMDim * (MatrixH / PECount)>(mvOut, out, numReps);
 }
 
 
@@ -102,36 +93,28 @@ template<
 		unsigned int AccWidth, 	        // number of bits for accumulation
 		unsigned int AccIntWidth,     // number of integer bits for accumulation
 		unsigned int WMemCount,			// entries in each PEs weight memory
-		unsigned int TMemCount,			// entries in each PEs threshold memory
-
-		// Padding arguments (optional)
-    unsigned int PadDim = 0         // Amount of padding to put around each image.
+		unsigned int TMemCount			// entries in each PEs threshold memory
 >
 void StreamingFxdConvLayer_Batch(stream<ap_uint<IFMChannels * InpWidth> > & in,
 		stream<ap_uint<OFMChannels> > & out,
 		const ap_uint<SIMDWidth> weightMem[PECount][WMemCount],
 		const ap_fixed<AccWidth, AccIntWidth> thresMem[PECount][TMemCount],
-		const unsigned int numReps,
-		// padValue is the desired paddingValue repeated IFMChannels times.
-		const ap_uint<IFMChannels*InpWidth> padValue = 0) {
+		const unsigned int numReps) {
 	// compute weight matrix dimension from conv params
 	const unsigned int MatrixW = ConvKernelDim * ConvKernelDim * IFMChannels;
 	const unsigned int MatrixH = OFMChannels;
 #pragma HLS INLINE
-	stream<ap_uint<IFMChannels * InpWidth> > convInp(
-			"StreamingFxdConvLayer_Batch.convInp");
-	stream<ap_uint<SIMDWidth * InpWidth> > mvIn(
-			"StreamingFxdConvLayer_Batch.mvIn");
-	stream<ap_uint<PECount> > mvOut("StreamingFxdConvLayer_Batch.mvOut");
+	stream<ap_uint<IFMChannels * InpWidth> > convInp("StreamingFxdConvLayer_Batch.convInp");
+			
+	WidthAdjustedOutputStream <PECount, OFMChannels, OFMDim * OFMDim * (OFMChannels / PECount)>  mvOut (out,  numReps);		
+			
 	StreamingConvolutionInputGenerator_Batch<ConvKernelDim,
-			IFMChannels, IFMDim, OFMDim, InpWidth, PadDim>(in, convInp, numReps, padValue);
-	StreamingDataWidthConverter_Batch<IFMChannels * InpWidth,
-			SIMDWidth * InpWidth,
-			OFMDim * OFMDim * ConvKernelDim * ConvKernelDim>(convInp, mvIn,
-			numReps);
+			IFMChannels, IFMDim, OFMDim, InpWidth>(in, convInp, numReps);
+			
+	WidthAdjustedInputStream <IFMChannels * InpWidth, SIMDWidth * InpWidth, OFMDim * OFMDim * ConvKernelDim * ConvKernelDim>  mvIn (convInp,  numReps);
+
 	StreamingFxdMatrixVector_Batch<InpWidth, InpIntWidth, SIMDWidth, PECount,
 			AccWidth, AccIntWidth, MatrixW, MatrixH, WMemCount, TMemCount>(mvIn,
 			mvOut, weightMem, thresMem, numReps * OFMDim * OFMDim);
-	StreamingDataWidthConverter_Batch<PECount, MatrixH,
-			OFMDim * OFMDim * (MatrixH / PECount)>(mvOut, out, numReps);
+
 }
