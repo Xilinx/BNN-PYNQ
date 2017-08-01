@@ -129,6 +129,9 @@ class PynqBNN:
         result_array = np.copy(np.frombuffer(result_buffer, dtype=np.uint32))
         self.interface.free_results(result_ptr)
         return result_array
+
+    def class_name(self, index):
+        return self.classes[index]
     
 
 class CnvClassifier:
