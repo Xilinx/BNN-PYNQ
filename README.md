@@ -37,7 +37,7 @@ The repo is organized as follows:
 	-	bitstreams: with the bitstream for the 2 overlays
 	-	libraries: pre-compiled shared objects for low-level driver of the 2 overlays
 	-	params: set of trained parameters for the 2 networks:
-		- <a href="http://yann.lecun.com/exdb/mnist/" target="_blank"> MNIST </a> dataset for LFC network
+		- <a href="http://yann.lecun.com/exdb/mnist/" target="_blank"> MNIST </a> and <a href="https://www.nist.gov/srd/nist-special-database-19" target="_blank"> NIST </a> dataset for LFC network
 		- <a href="https://www.cs.toronto.edu/~kriz/cifar.html" target="_blank"> Cifar10 </a>, <a href="http://ufldl.stanford.edu/housenumbers/" target="_blank"> SVHN </a> and <a href="http://benchmark.ini.rub.de/?section=gtsdb&subsection=dataset" target="_blank"> German Road Signs </a> dataset for CNV network
 -	notebooks: lists a set of python notebooks examples, that during installation will be moved in `/home/xilinx/jupyter_notebooks/bnn/` folder
 -	tests: contains test scripts and test images
