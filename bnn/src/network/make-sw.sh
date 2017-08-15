@@ -1,3 +1,4 @@
+#!/bin/bash
 ###############################################################################
  #  Copyright (c) 2016, Xilinx, Inc.
  #  All rights reserved.
@@ -39,7 +40,6 @@
  #
  #
 ###############################################################################
-#!/bin/bash
 
 NETWORKS=$(ls -d *-*/ | cut -f1 -d'/' | tr "\n" " ")
 
@@ -58,11 +58,11 @@ if [ -z "$XILINX_BNN_ROOT" ]; then
     exit 1
 fi
 
-#if [ -z "$VIVADOHLS_INCLUDE_PATH" ]; then
-#    echo "Need to set VIVADOHLS_INCLUDE_PATH to rebuild from source"
-#    echo "The pre-compiled shared objects will be included"
-#    exit 1
-#fi  
+if [ -z "$VIVADOHLS_INCLUDE_PATH" ]; then
+    echo "Need to set VIVADOHLS_INCLUDE_PATH to rebuild from source"
+    echo "The pre-compiled shared objects will be included"
+    exit 1
+fi  
 
 OLD_DIR=$(pwd)
 cd $XILINX_BNN_ROOT
