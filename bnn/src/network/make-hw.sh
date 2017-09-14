@@ -138,7 +138,7 @@ if [[ ("$MODE" == "b") || ("$MODE" == "a")  ]]; then
   fi
   vivado -mode batch -notrace -source $VIVADO_SCRIPT -tclargs $HLS_IP_REPO $TARGET_NAME $VIVADO_OUT_DIR $VIVADO_SCRIPT_DIR
   cp -f "$VIVADO_OUT_DIR/$TARGET_NAME.runs/impl_1/procsys_wrapper.bit" $TARGET_BITSTREAM
-  cp -f "$VIVADO_OUT_DIR/$TARGET_NAME.runs/impl_1/procsys_wrapper.tcl" $TARGET_TCL
+  cp -f "$VIVADO_OUT_DIR/procsys.tcl" $TARGET_TCL
   # extract parts of the post-implementation reports
   cat "$VIVADO_OUT_DIR/$TARGET_NAME.runs/impl_1/procsys_wrapper_timing_summary_routed.rpt" | grep "| Design Timing Summary" -B 3 -A 10 > $REPORT_OUT_DIR/vivado.txt
   cat "$VIVADO_OUT_DIR/$TARGET_NAME.runs/impl_1/procsys_wrapper_utilization_placed.rpt" | grep "Slice LUTs" -B 3 -A 10 >> $REPORT_OUT_DIR/vivado.txt
