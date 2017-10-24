@@ -20,7 +20,9 @@ If you find BNN-PYNQ useful, please cite the <a href="https://arxiv.org/abs/1612
 
 In order to install it your PYNQ, connect to the board, open a terminal and type:
 
-sudo pip3.6 install git+https://github.com/Xilinx/BNN-PYNQ.git (on PYNQ v2.0)
+sudo pip3.6 install git+https://github.com/Xilinx/BNN-PYNQ.git (on PYNQ v2.0
+
+This will install the BNN package to your board, and create a **BNN** directory in the Jupyter home area. You will find the Jupyter notebooks to test the BNN in this directory. 
 
 In order to build the shared object during installation, the user should copy the include folder from VIVADO HLS on the PYNQ board (in windows in vivado-path/Vivado_HLS/201x.y/include, /vivado-path/Vidado_HLS/201x.y/include in unix) and set the environment variable VIVADOHLS_INCLUDE_PATH to the location in which the folder has been copied.
 If the env variable is not set, the precompiled version will be used instead. 
