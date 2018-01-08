@@ -96,7 +96,19 @@ if [[ ("$MODE" == "h") || ("$MODE" == "a")  ]]; then
   OLDDIR=$(pwd)
   echo "Calling Vivado HLS for hardware synthesis..."
   cd $HLS_OUT_DIR/..
-  vivado_hls -f $HLS_SCRIPT -tclargs $NETWORK $HLS_SRC_DIR
+  if [[ ("$NETWORK" == "cnv-pynq") ]]; then
+	PARAMS="$XILINX_BNN_ROOT/../params/cifar10/"
+	TEST_INPUT="$XILINX_BNN_ROOT/../../tests/Test_image/deer.bin"
+	TEST_RESULT=4
+  elif [[ ("$NETWORK" == "lfc-pynq") ]]; then
+	PARAMS="$XILINX_BNN_ROOT/../params/mnist/"
+	TEST_INPUT="$XILINX_BNN_ROOT/../../tests/Test_image/3.image-idx3-ubyte"
+	TEST_RESULT=3
+  else
+	echo "Target Network not supported"
+	exit 1
+  fi
+  vivado_hls -f $HLS_SCRIPT -tclargs $NETWORK $HLS_SRC_DIR $PARAMS $TEST_INPUT $TEST_RESULT
   if cat $VIVADO_HLS_LOG | grep "ERROR"; then
     echo "Error in Vivado_HLS"
     exit 1	

@@ -146,3 +146,27 @@ delete[] result;
 extern "C" void deinit() {
 FoldedMVDeinit();
 }
+
+extern "C" int main(int argc, char*argv[])
+{
+	if (argc != 5)
+	{
+		cout << "4 parameters are needed: " << endl;
+		cout << "1 - folder for the binarized weights (binparam-***) - full path " << endl;
+		cout << "2 - path to image to be classified" << endl;
+		cout << "3 - number of classes in the dataset" << endl;
+		cout << "4 - expected result" << endl;
+		return 1;
+	}
+	load_parameters(argv[1]);
+	float execution_time = 0;
+	unsigned int scores[64];
+	unsigned int class_inference = inference(argv[2], scores, atol(argv[3]), &execution_time);
+	cout << "Detected class " << class_inference << endl;
+	cout << "in " << execution_time << " microseconds" << endl;
+	deinit();
+	if (class_inference != atol(argv[4]))
+		return 1;
+	else
+		return 0;
+}
