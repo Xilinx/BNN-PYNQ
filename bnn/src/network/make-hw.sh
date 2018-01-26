@@ -72,6 +72,17 @@ if [ -z "$PATH_TO_VIVADO_HLS" ]; then
     exit 1
 fi
 
+
+OLD_DIR=$(pwd)
+cd $XILINX_BNN_ROOT
+if [ -d "${XILINX_BNN_ROOT}/xilinx-tiny-cnn/" ]; then
+	echo "xilinx-tiny-cnn already cloned"
+else
+	git clone https://github.com/Xilinx/xilinx-tiny-cnn.git
+fi
+cd $OLD_DIR
+
+
 BNN_PATH=$XILINX_BNN_ROOT/network
 
 HLS_SRC_DIR="$BNN_PATH/$NETWORK/hw"
