@@ -150,7 +150,7 @@ std::vector<unsigned int> testPrebinarized_nolabel(std::vector<vec_t> & imgs, co
   }
   else
   {
-		internal_result = log2 ((double) outLabel[0]);
+		internal_result = round(log2 ((double) outLabel[0]));
   }
   for (unsigned int i = 0 ; i < 64; i++)
   {
