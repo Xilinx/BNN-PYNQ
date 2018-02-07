@@ -32,7 +32,7 @@ from time import sleep
 import pytest
 from pynq import MMIO
 from pynq import Overlay
-from pynq import general_const
+#from pynq import general_const
 import bnn
 from pynq import Xlnk
 from PIL import Image
