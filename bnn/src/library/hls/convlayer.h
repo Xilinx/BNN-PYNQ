@@ -1,5 +1,5 @@
 /******************************************************************************
- *  Copyright (c) 2016, Xilinx, Inc.
+ *  Copyright (c) 2017, Xilinx, Inc.
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -40,81 +40,50 @@
  * 
  *
  *****************************************************************************/
+#ifndef CONVLAYER_H
+#define CONVLAYER_H
+
+#include <ap_int.h>
+#include <hls_stream.h>
+
+#include "streamtools.h"
+#include "mvau.hpp"
 
 template<
-// convolution parameters
-		unsigned int ConvKernelDim,	// e.g 3 for a 3x3 conv kernel (assumed square)
+		unsigned int ConvKernelDim,		// e.g 3 for a 3x3 conv kernel (assumed square)
 		unsigned int IFMChannels,		// number of input feature maps
-		unsigned int IFMDim,	// width of input feature map (assumed square)
+		unsigned int IFMDim,			// width of input feature map (assumed square)
 		unsigned int OFMChannels,		// number of output feature maps
 		unsigned int OFMDim,			// IFMDim-ConvKernelDim+1 or less
+		
+		unsigned int SIMD, 				// number of SIMD lanes
+		unsigned int PE,				// number of PEs
+		
+		typename TSrcI = Identity,      // redefine I/O interpretation as needed for input activations
+		typename TDstI = Identity,		// redefine I/O interpretation as needed for output activations
+		typename TWeightI = Identity,	// redefine I/O interpretation as needed for output activations
 
-		// matrix-vector unit parameters
-		unsigned int SIMDWidth, 		// number of SIMD lanes
-		unsigned int PECount,			// number of PEs
-		unsigned int PopCountWidth, 	// number of bits for popcount
-		unsigned int WMemCount,			// entries in each PEs weight memory
-		unsigned int TMemCount			// entries in each PEs threshold memory
+		int InStreamW, int OutStreamW,  // safely deducible (stream width must be int though!)
+		typename TW,   typename TA
 >
-void StreamingConvLayer_Batch(stream<ap_uint<IFMChannels> > & in,
-		stream<ap_uint<OFMChannels> > & out,
-		const ap_uint<SIMDWidth> weightMem[PECount][WMemCount],
-		const ap_uint<PopCountWidth> thresMem[PECount][TMemCount],
-		const unsigned int numReps) {
-	// compute weight matrix dimension from conv params
-	const unsigned int MatrixW = ConvKernelDim * ConvKernelDim * IFMChannels;
-	const unsigned int MatrixH = OFMChannels;
-
+void ConvLayer_Batch(hls::stream<ap_uint<InStreamW>>  &in,
+			    hls::stream<ap_uint<OutStreamW>> &out,
+			    TW const        &weights,
+			    TA const        &activation,
+			    unsigned const   reps) {
 #pragma HLS INLINE
-	stream<ap_uint<IFMChannels> > convInp("StreamingConvLayer_Batch.convInp");
-	WidthAdjustedOutputStream <PECount, OFMChannels, OFMDim * OFMDim * (OFMChannels / PECount)>  mvOut (out,  numReps);
-	StreamingConvolutionInputGenerator_Batch<ConvKernelDim, IFMChannels, IFMDim,
-			OFMDim, 1>(in, convInp, numReps);
-	WidthAdjustedInputStream <IFMChannels, SIMDWidth, OFMDim * OFMDim * ConvKernelDim * ConvKernelDim>  mvIn (convInp,  numReps);
-	StreamingMatrixVector_Batch<SIMDWidth, PECount, PopCountWidth, MatrixW,
-			MatrixH, WMemCount, TMemCount>(mvIn, mvOut, weightMem, thresMem,
-			numReps * OFMDim * OFMDim);
+  constexpr unsigned int MatrixW = ConvKernelDim * ConvKernelDim * IFMChannels;
+  constexpr unsigned int MatrixH = OFMChannels;
+  constexpr unsigned int InpPerImage = IFMDim*IFMDim*IFMChannels/InStreamW;
+  WidthAdjustedInputStream <InStreamW, SIMD*TSrcI::width, InpPerImage>  wa_in (in,  reps);
+  WidthAdjustedOutputStream <PE, OFMChannels, OFMDim * OFMDim * (OFMChannels / PE)>  mvOut (out,  reps);
+  hls::stream<ap_uint<SIMD*TSrcI::width> > convInp("StreamingConvLayer_Batch.convInp");
+ ConvolutionInputGenerator<ConvKernelDim, IFMChannels, TSrcI::width, IFMDim,
+			OFMDim, SIMD,1>(wa_in, convInp, reps);
+  Matrix_Vector_Activate_Batch<MatrixW, MatrixH, SIMD, PE, TSrcI, TDstI, TWeightI>
+    (static_cast<hls::stream<ap_uint<SIMD*TSrcI::width>>&>(convInp),
+     static_cast<hls::stream<ap_uint<PE*TDstI::width>>&>  (mvOut),
+     weights, activation, reps* OFMDim * OFMDim);
 }
+#endif
 
-
-template<
-// convolution parameters
-		unsigned int ConvKernelDim,	// e.g 3 for a 3x3 conv kernel (assumed square)
-		unsigned int IFMChannels,		// number of input feature maps
-		unsigned int IFMDim,	// width of input feature map (assumed square)
-		unsigned int OFMChannels,		// number of output feature maps
-		unsigned int OFMDim,			// IFMDim-ConvKernelDim+1 or less
-
-		// matrix-vector unit parameters
-		unsigned int InpWidth,          // size of the fixed point input
-		unsigned int InpIntWidth, // number of integer bits for the fixed point input
-		unsigned int SIMDWidth, 		// number of SIMD lanes
-		unsigned int PECount,			// number of PEs
-		unsigned int AccWidth, 	        // number of bits for accumulation
-		unsigned int AccIntWidth,     // number of integer bits for accumulation
-		unsigned int WMemCount,			// entries in each PEs weight memory
-		unsigned int TMemCount			// entries in each PEs threshold memory
->
-void StreamingFxdConvLayer_Batch(stream<ap_uint<IFMChannels * InpWidth> > & in,
-		stream<ap_uint<OFMChannels> > & out,
-		const ap_uint<SIMDWidth> weightMem[PECount][WMemCount],
-		const ap_fixed<AccWidth, AccIntWidth> thresMem[PECount][TMemCount],
-		const unsigned int numReps) {
-	// compute weight matrix dimension from conv params
-	const unsigned int MatrixW = ConvKernelDim * ConvKernelDim * IFMChannels;
-	const unsigned int MatrixH = OFMChannels;
-#pragma HLS INLINE
-	stream<ap_uint<IFMChannels * InpWidth> > convInp("StreamingFxdConvLayer_Batch.convInp");
-			
-	WidthAdjustedOutputStream <PECount, OFMChannels, OFMDim * OFMDim * (OFMChannels / PECount)>  mvOut (out,  numReps);		
-			
-	StreamingConvolutionInputGenerator_Batch<ConvKernelDim,
-			IFMChannels, IFMDim, OFMDim, InpWidth>(in, convInp, numReps);
-			
-	WidthAdjustedInputStream <IFMChannels * InpWidth, SIMDWidth * InpWidth, OFMDim * OFMDim * ConvKernelDim * ConvKernelDim>  mvIn (convInp,  numReps);
-
-	StreamingFxdMatrixVector_Batch<InpWidth, InpIntWidth, SIMDWidth, PECount,
-			AccWidth, AccIntWidth, MatrixW, MatrixH, WMemCount, TMemCount>(mvIn,
-			mvOut, weightMem, thresMem, numReps * OFMDim * OFMDim);
-
-}

@@ -40,49 +40,40 @@
  * 
  *
  *****************************************************************************/
+#ifndef FCLAYER_H
+#define FCLAYER_H
 
-// helper function for fully connected layers
-// instantiates matrix vector unit plus data width converters
-template<unsigned int InStreamW, unsigned int OutStreamW,
-		unsigned int SIMDWidth, unsigned int PECount,
-		unsigned int PopCountWidth, unsigned int MatrixW, unsigned int MatrixH,
-		unsigned int WMemCount, unsigned int TMemCount>
-void StreamingFCLayer_Batch(stream<ap_uint<InStreamW> > & in,
-		stream<ap_uint<OutStreamW> > & out,
-		const ap_uint<SIMDWidth> weightMem[PECount][WMemCount],
-		const ap_uint<PopCountWidth> thresMem[PECount][TMemCount],
-		const unsigned int numReps) {
+#include <ap_int.h>
+#include <hls_stream.h>
+
+#include "streamtools.h"
+#include "mvau.hpp"
+
+template<
+  unsigned int MatrixW, unsigned int MatrixH, // geometry must be specified
+  unsigned int SIMD,    unsigned int PE,
+
+  typename TSrcI = Identity,      // redefine I/O interpretation as needed
+  typename TDstI = Identity,
+
+  int InStreamW, int OutStreamW,  // safely deducible (stream width must be int though!)
+  typename TW,   typename TA
+>
+void StreamingFCLayer_Batch(hls::stream<ap_uint<InStreamW>>  &in,
+			    hls::stream<ap_uint<OutStreamW>> &out,
+			    TW const        &weights,
+			    TA const        &activation,
+			    unsigned const   reps) {
 #pragma HLS INLINE
   unsigned const  InpPerImage = MatrixW / InStreamW;
-  unsigned const  OutPerImage = MatrixH / PECount;
+  unsigned const  OutPerImage = MatrixH / PE;
 
-  WidthAdjustedInputStream <InStreamW, SIMDWidth, InpPerImage>  wa_in (in,  numReps);
-  WidthAdjustedOutputStream<PECount,  OutStreamW, OutPerImage>  wa_out(out, numReps);
+  WidthAdjustedInputStream <InStreamW, SIMD*TSrcI::width, InpPerImage>  wa_in (in,  reps);
+  WidthAdjustedOutputStream<PE*TDstI::width,  OutStreamW, OutPerImage>  wa_out(out, reps);
 
-  StreamingMatrixVector_Batch<SIMDWidth, PECount, PopCountWidth, MatrixW, MatrixH, WMemCount, TMemCount>
-    (wa_in, wa_out, weightMem, thresMem, numReps);
+  Matrix_Vector_Activate_Batch<MatrixW, MatrixH, SIMD, PE, TSrcI, TDstI>
+    (static_cast<hls::stream<ap_uint<SIMD*TSrcI::width>>&>(wa_in),
+     static_cast<hls::stream<ap_uint<PE*TDstI::width>>&>  (wa_out),
+     weights, activation, reps);
 }
-
-// helper function for fully connected layers with no activation
-// instantiates matrix vector unit plus data width converters
-template<unsigned int InStreamW, unsigned int OutStreamW,
-		unsigned int SIMDWidth, unsigned int PECount,
-		unsigned int PopCountWidth, unsigned int MatrixW, unsigned int MatrixH,
-		unsigned int WMemCount>
-void StreamingFCLayer_NoActivation_Batch(stream<ap_uint<InStreamW> > & in,
-		stream<ap_uint<OutStreamW> > & out,
-		const ap_uint<SIMDWidth> weightMem[PECount][WMemCount],
-		const unsigned int numReps) {
-#pragma HLS INLINE
-	stream<ap_uint<SIMDWidth> > in2mvu("StreamingFCLayer_NoAct_Batch.in2mvu");
-	stream<ap_uint<PECount * PopCountWidth> > mvu2out(
-			"StreamingFCLayer_NoAct_Batch.mvu2out");
-	const unsigned int InpPerImage = MatrixW / InStreamW;
-	StreamingDataWidthConverter_Batch<InStreamW, SIMDWidth, InpPerImage>(in,
-			in2mvu, numReps);
-	StreamingMatrixVector_NoActivation_Batch<SIMDWidth, PECount, PopCountWidth,
-			MatrixW, MatrixH, WMemCount>(in2mvu, mvu2out, weightMem, numReps);
-	const unsigned int OutPerImage = MatrixH / PECount;
-	StreamingDataWidthConverter_Batch<PECount * PopCountWidth, OutStreamW,
-			OutPerImage>(mvu2out, out, numReps);
-}
+#endif

@@ -1,5 +1,5 @@
 /******************************************************************************
- *  Copyright (c) 2016, Xilinx, Inc.
+ *  Copyright (c) 2017, Xilinx, Inc.
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -28,31 +28,38 @@
  *  OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  *  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- *****************************************************************************/
-/******************************************************************************
+ *****************************************************************************
+ *  Authors: Thomas B. Preusser <thomas.preusser@utexas.edu>
+ *             Marie-Curie Fellow, Xilinx Ireland, Grant Agreement No. 751339
  *
+ *  This project has received funding from the European Union's Framework
+ *  Programme for Research and Innovation Horizon 2020 (2014-2020) under
+ *  the Marie Skłodowska-Curie Grant Agreement No. 751339.
  *
- * @file bnn-library.h
- *
- * Library of templated HLS functions for BNN deployment. 
- * Include this file in the network top funtion.
- * 
- *
- *****************************************************************************/
+ */
+#ifndef UTILS_HPP
+#define UTILS_HPP
 
-#include <hls_stream.h>
-#include "ap_int.h"
-#include <iostream>
-#include <string>
+#include <cstddef>
 
-using namespace hls;
-using namespace std;
+//- Static Evaluation of ceil(log2(x)) ---------------------------------------
+template<size_t N> struct clog2 {
+  static unsigned const  value = 1 + ((N&1) == 0? clog2<N/2>::value : clog2<N/2+1>::value);
+};
+template<> struct clog2<0> {};
+template<> struct clog2<1> { static unsigned const  value = 0; };
+template<> struct clog2<2> { static unsigned const  value = 1; };
 
-#define CASSERT_DATAFLOW(x) ;
+//- Helpers to get hold of types ---------------------------------------------
+template<typename T> struct first_param {};
+template<typename R, typename A, typename... Args>
+struct first_param<R (*)(A, Args...)> { typedef A  type; };
+template<typename C, typename R, typename A, typename... Args>
+struct first_param<R (C::*)(A, Args...)> { typedef A  type; };
 
-#include "streamtools.h"
-#include "dma.h"
-#include "slidingwindow.h"
-#include "maxpool.h"
-#include "fclayer.h"
-#include "convlayer.h"
+//- Resource Representatives -------------------------------------------------
+class ap_resource_dflt {};
+class ap_resource_lut {};
+class ap_resource_dsp {};
+
+#endif

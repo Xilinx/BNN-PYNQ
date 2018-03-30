@@ -1,5 +1,5 @@
 /******************************************************************************
- *  Copyright (c) 2016, Xilinx, Inc.
+ *  Copyright (c) 2017, Xilinx, Inc.
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -28,31 +28,55 @@
  *  OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  *  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- *****************************************************************************/
-/******************************************************************************
+ *****************************************************************************
+ *  Authors: Thomas B. Preußer <thomas.preusser@utexas.edu>
+ *             Marie-Curie Fellow, Xilinx Ireland, Grant Agreement No. 751339
  *
- *
- * @file bnn-library.h
- *
- * Library of templated HLS functions for BNN deployment. 
- * Include this file in the network top funtion.
- * 
- *
- *****************************************************************************/
+ *  This project has received funding from the European Union's Framework
+ *  Programme for Research and Innovation Horizon 2020 (2014-2020) under
+ *  the Marie Skłodowska-Curie Grant Agreement No. 751339.
+ */
+#ifndef WEIGHTS_HPP
+#define WEIGHTS_HPP
 
-#include <hls_stream.h>
-#include "ap_int.h"
-#include <iostream>
-#include <string>
+#include <ap_int.h>
 
-using namespace hls;
-using namespace std;
+/**
+ * A binary weight storage adapter that translates the internal
+ * organization optimized for storage to the generalized access
+ * by the MVAU.
+ */
+template<unsigned SIMD, unsigned PE, unsigned TILES>
+class BinaryWeights {
+public:
+  ap_uint<SIMD>  m_weights[PE][TILES];
 
-#define CASSERT_DATAFLOW(x) ;
+private:
+  /**
+   * Temporary container for the tile index to implement the
+   * memory access in pe -> tile order.
+   */
+  class TileIndex {
+    BinaryWeights const &m_par;
+    unsigned      const  m_idx;
 
-#include "streamtools.h"
-#include "dma.h"
-#include "slidingwindow.h"
-#include "maxpool.h"
-#include "fclayer.h"
-#include "convlayer.h"
+  public:
+    TileIndex(BinaryWeights const &par, unsigned const  idx)
+      : m_par(par), m_idx(idx) {
+#pragma HLS inline
+    }
+
+  public:
+    ap_uint<SIMD> operator[](unsigned const  pe) const {
+#pragma HLS inline
+      return  m_par.m_weights[pe][m_idx];
+    }
+  };
+
+public:
+  TileIndex weights(unsigned const  tile) const {
+#pragma HLS inline
+    return  TileIndex(*this, tile);
+  }
+};
+#endif

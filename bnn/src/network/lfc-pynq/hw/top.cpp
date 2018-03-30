@@ -40,18 +40,23 @@
  *
  *****************************************************************************/
 
-#include "bnn-library.h"
+#define CASSERT_DATAFLOW(x)
 #include "config.h"
 
-static ap_uint<L0_SIMD> weightMem0[L0_PE][L0_WMEM];
-static ap_uint<16> thresMem0[L0_PE][L0_TMEM];
-static ap_uint<L1_SIMD> weightMem1[L1_PE][L1_WMEM];
-static ap_uint<16> thresMem1[L1_PE][L1_TMEM];
-static ap_uint<L2_SIMD> weightMem2[L2_PE][L2_WMEM];
-static ap_uint<16> thresMem2[L2_PE][L2_TMEM];
-static ap_uint<L3_SIMD> weightMem3[L3_PE][L3_WMEM];
-static ap_uint<16> thresMem3[L3_PE][L3_TMEM];
+#include "dma.h"
+#include "fclayer.h"
+#include "weights.hpp"
+#include "activations.hpp"
+#include "interpret.hpp"
 
+static BinaryWeights<L0_SIMD, L0_PE, L0_WMEM>             weights0;
+static ThresholdsActivation<L0_TMEM, L0_PE, ap_uint<16>>  threshs0;
+static BinaryWeights<L1_SIMD, L1_PE, L1_WMEM>             weights1;
+static ThresholdsActivation<L1_TMEM, L1_PE, ap_uint<16>>  threshs1;
+static BinaryWeights<L2_SIMD, L2_PE, L2_WMEM>             weights2;
+static ThresholdsActivation<L2_TMEM, L2_PE, ap_uint<16>>  threshs2;
+static BinaryWeights<L3_SIMD, L3_PE, L3_WMEM>             weights3;
+static ThresholdsActivation<L3_TMEM, L3_PE, ap_uint<16>>  threshs3;
 
 unsigned int paddedSizeHW(unsigned int in, unsigned int padTo) {
   if(in % padTo == 0)
@@ -63,28 +68,28 @@ unsigned int paddedSizeHW(unsigned int in, unsigned int padTo) {
 void DoMemInit(unsigned int targetLayer, unsigned int targetMem, unsigned int targetInd, ap_uint<64> val) {
   switch(targetLayer) {
 		case 0:
-			weightMem0[targetMem][targetInd] = val;
+			weights0.m_weights[targetMem][targetInd] = val;
 			break;
 		case 1:
-			thresMem0[targetMem][targetInd] = val;
+			threshs0.m_thresholds[targetMem][targetInd] = val;
 			break;
 		case 2:
-			weightMem1[targetMem][targetInd] = val;
+			weights1.m_weights[targetMem][targetInd] = val;
 			break;
 		case 3:
-			thresMem1[targetMem][targetInd] = val;
+			threshs1.m_thresholds[targetMem][targetInd] = val;
 			break;
 		case 4:
-			weightMem2[targetMem][targetInd] = val;
+			weights2.m_weights[targetMem][targetInd] = val;
 			break;
 		case 5:
-			thresMem2[targetMem][targetInd] = val;
+			threshs2.m_thresholds[targetMem][targetInd] = val;
 			break;
 		case 6:
-			weightMem3[targetMem][targetInd] = val;
+			weights3.m_weights[targetMem][targetInd] = val;
 			break;
 		case 7:
-			thresMem3[targetMem][targetInd] = val;
+			threshs3.m_thresholds[targetMem][targetInd] = val;
 			break;
 		}
 }
@@ -119,16 +124,16 @@ void DoCompute(ap_uint<64> * in, ap_uint<64> * out, const unsigned int numReps) 
   const unsigned int outBytesPadded = outBitsPadded/8;
   const unsigned int inWordsPerImg = inBitsPadded / 64;
   const unsigned int outWordsPerImg = outBitsPadded / 64;
-	
+
   Mem2Stream_Batch<64, inBytesPadded>(in, memInStrm, numReps);
-  StreamingFCLayer_Batch<64,    L0_PE, L0_SIMD, L0_PE, 16, L0_MW, L0_MH, L0_WMEM, L0_TMEM>
-    (memInStrm, inter0, weightMem0, thresMem0, numReps);
-  StreamingFCLayer_Batch<L0_PE, L1_PE, L1_SIMD, L1_PE, 16, L1_MW, L1_MH, L1_WMEM, L1_TMEM>
-    (inter0, inter1, weightMem1, thresMem1, numReps);
-  StreamingFCLayer_Batch<L1_PE, L2_PE, L2_SIMD, L2_PE, 16, L2_MW, L2_MH, L2_WMEM, L2_TMEM>
-    (inter1, inter2, weightMem2, thresMem2, numReps);
-  StreamingFCLayer_Batch<L2_PE,    64, L3_SIMD, L3_PE, 16, L3_MW, L3_MH, L3_WMEM, L3_TMEM>
-    (inter2, memOutStrm, weightMem3, thresMem3, numReps);
+  StreamingFCLayer_Batch<L0_MW, L0_MH, L0_SIMD, L0_PE, Recast<XnorMul>>
+    (memInStrm, inter0, weights0, threshs0, numReps);
+  StreamingFCLayer_Batch<L1_MW, L1_MH, L1_SIMD, L1_PE, Recast<XnorMul>>
+    (inter0, inter1, weights1, threshs1, numReps);
+  StreamingFCLayer_Batch<L2_MW, L2_MH, L2_SIMD, L2_PE, Recast<XnorMul>>
+    (inter1, inter2, weights2, threshs2, numReps);
+  StreamingFCLayer_Batch<L3_MW, L3_MH, L3_SIMD, L3_PE, Recast<XnorMul>>
+    (inter2, memOutStrm, weights3, threshs3, numReps);
   Stream2Mem_Batch<64, outBytesPadded>(memOutStrm, out, numReps);
 }
 
@@ -151,14 +156,14 @@ void BlackBoxJam(ap_uint<64> * in, ap_uint<64> * out, bool doInit,
 #pragma HLS INTERFACE s_axilite port=out bundle=control
 
 // partition PE arrays
-#pragma HLS ARRAY_PARTITION variable=weightMem0 complete dim=1
-#pragma HLS ARRAY_PARTITION variable=thresMem0 complete dim=1
-#pragma HLS ARRAY_PARTITION variable=weightMem1 complete dim=1
-#pragma HLS ARRAY_PARTITION variable=thresMem1 complete dim=1
-#pragma HLS ARRAY_PARTITION variable=weightMem2 complete dim=1
-#pragma HLS ARRAY_PARTITION variable=thresMem2 complete dim=1
-#pragma HLS ARRAY_PARTITION variable=weightMem3 complete dim=1
-#pragma HLS ARRAY_PARTITION variable=thresMem3 complete dim=1
+#pragma HLS ARRAY_PARTITION variable=weights0.m_weights complete dim=1
+#pragma HLS ARRAY_PARTITION variable=threshs0.m_thresholds complete dim=1
+#pragma HLS ARRAY_PARTITION variable=weights1.m_weights complete dim=1
+#pragma HLS ARRAY_PARTITION variable=threshs1.m_thresholds complete dim=1
+#pragma HLS ARRAY_PARTITION variable=weights2.m_weights complete dim=1
+#pragma HLS ARRAY_PARTITION variable=threshs2.m_thresholds complete dim=1
+#pragma HLS ARRAY_PARTITION variable=weights3.m_weights complete dim=1
+#pragma HLS ARRAY_PARTITION variable=threshs3.m_thresholds complete dim=1
 
 	if (doInit) {
 		DoMemInit(targetLayer, targetMem, targetInd, val);

@@ -40,6 +40,8 @@
  * 
  *
  *****************************************************************************/
+#ifndef STREAMTOOLS_H
+#define STREAMTOOLS_H
 
 // only let the first X elements of a stream to pass through, the remainder
 // are consumed from input but not re-emitted from the output
@@ -48,8 +50,8 @@ template<unsigned int DataWidth,		// stream width
 		unsigned int NumAllowed, 	// number of words to pass through
 		unsigned int NumTotal // total number of words (NumTotal-NumAllowed swallowed)
 >
-void StreamLimiter(stream<ap_uint<DataWidth> > & in,
-		stream<ap_uint<DataWidth> > & out) {
+void StreamLimiter(hls::stream<ap_uint<DataWidth> > & in,
+		hls::stream<ap_uint<DataWidth> > & out) {
 	CASSERT_DATAFLOW(NumTotal >= NumAllowed);
 	unsigned int numLeft = NumAllowed;
 	for (unsigned int i = 0; i < NumTotal; i++) {
@@ -66,15 +68,15 @@ template<unsigned int DataWidth,		// stream width
 		unsigned int NumAllowed, 	// number of words to pass through
 		unsigned int NumTotal // total number of words (NumTotal-NumAllowed swallowed)
 >
-void StreamLimiter_Batch(stream<ap_uint<DataWidth> > & in,
-		stream<ap_uint<DataWidth> > & out, unsigned int numReps) {
+void StreamLimiter_Batch(hls::stream<ap_uint<DataWidth> > & in,
+		hls::stream<ap_uint<DataWidth> > & out, unsigned int numReps) {
 	for (unsigned int rep = 0; rep < numReps; rep++) {
 		StreamLimiter<DataWidth, NumAllowed, NumTotal>(in, out);
 	}
 }
 
 template<typename InT, typename OutT>
-void StreamingCast(stream<InT> & in, stream<OutT> & out, unsigned int numReps) {
+void StreamingCast(hls::stream<InT> & in, hls::stream<OutT> & out, unsigned int numReps) {
   for(unsigned int i = 0; i < numReps; i++) {
 #pragma HLS PIPELINE II=1
     out.write((OutT) in.read());
@@ -85,8 +87,8 @@ template<unsigned int InWidth,		// width of input stream
 		unsigned int OutWidth,		// width of output stream
 		unsigned int NumInWords		// number of input words to process
 >
-void StreamingDataWidthConverter_Batch(stream<ap_uint<InWidth> > & in,
-		stream<ap_uint<OutWidth> > & out, const unsigned int numReps) {
+void StreamingDataWidthConverter_Batch(hls::stream<ap_uint<InWidth> > & in,
+		hls::stream<ap_uint<OutWidth> > & out, const unsigned int numReps) {
 	if (InWidth > OutWidth) {
 		// emit multiple output words per input word read
 		CASSERT_DATAFLOW(InWidth % OutWidth == 0);
@@ -206,3 +208,4 @@ template<unsigned W, unsigned N>
     return  m_target;
   }
 };
+#endif
