@@ -46,7 +46,7 @@ The repo is organized as follows:
 
 ## Hardware design rebuilt
 
-In order to rebuild the hardware designs, the repo should be cloned in a machine with installation of the Vivado Design Suite (tested with 2016.1). 
+In order to rebuild the hardware designs, the repo should be cloned in a machine with installation of the Vivado Design Suite (tested with 2017.4). 
 Following the step-by-step instructions:
 
 1.	Clone the repository on your linux machine: git clone https://github.com/Xilinx/BNN-PYNQ.git;
