@@ -2,14 +2,16 @@
 
 ## Motivations
 
-This repository trains the MNIST and CIFAR-10 networks provided with the FINN Pynq overlay. 
+This repository trains the [MNIST](http://yann.lecun.com/exdb/mnist/), [CIFAR-10](https://www.cs.toronto.edu/~kriz/cifar.html)
+and [GTSRB](http://benchmark.ini.rub.de/?section=gtsrb) networks provided with the FINN Pynq overlay. 
 The overlay can be found here: [https://github.com/Xilinx/BNN-PYNQ](https://github.com/Xilinx/BNN-PYNQ)
 
 ## Requirements
 
 * Python 2.7, Numpy (version 1.10.x or 1.11.x), Scipy
 * [Theano](http://deeplearning.net/software/theano/install.html) (version 0.9.0beta1)
-* [Pylearn2](http://deeplearning.net/software/pylearn2/)
+* [Pylearn2](http://deeplearning.net/software/pylearn2/) (only required for MNIST and CIFAR-10 datasets)
+* [Pillow](https://pillow.readthedocs.io/) (only required for GTSRB dataset)
 * [Download the datasets](#download-datasets) you need
 * [Lasagne](http://lasagne.readthedocs.org/en/latest/user/installation.html) (version 0.2.dev1)
 
@@ -39,6 +41,17 @@ The final test error should be around **1.60%**.
 ```
     
 This python script trains a ConvNet (denoted CNV) on CIFAR-10 with BinaryNet.
+It should run for about 43 hours on a GRID K520 GPU (i.e., a g2.2xlarge instance on AWS.)
+With cuDNN installed, it should be about 12 hours.
+The final test error should be around **20.42%**.
+
+### German Traffic Sign Recognition Benchmark ConvNet
+
+```bash
+    $ python gtsrb.py
+```
+    
+This python script trains a ConvNet (denoted CNV) on GTSRB (with an extra \"junk\" class) with BinaryNet.
 It should run for about 43 hours on a GRID K520 GPU (i.e., a g2.2xlarge instance on AWS.)
 With cuDNN installed, it should be about 12 hours.
 The final test error should be around **20.42%**.
@@ -80,7 +93,7 @@ There are many ways to set up the training environment, the following steps work
 In order to get an AWS EC2 instance up and running, see the [getting started guide](https://aws.amazon.com/ec2/getting-started/).
 If you're using a shared machine, it's strongly suggested you install the python packages (all python and pip commands) under a [virtualenv](https://virtualenv.pypa.io/) environment.
 
-At a high level, the instuctions perform the following steps:
+At a high level, the instructions perform the following steps:
 
 1. Install Nvidia drivers, CUDA and cuDNN
 1. Install python packages (Theano, Lasagne, Numpy, Pylearn2)
@@ -188,7 +201,7 @@ Alternatively, you can install the packages into your user's site packages locat
     $ export OMP_NUM_THREADS=`nproc`
     ```
 
-1. Install Pylearn2:
+1. Install Pylearn2 (Only required for MNIST, CIFAR-10):
 
     ```bash
     $ pip install --user numpy==1.11.0 # Pylearn2 seems to not work with the latest version of numpy
@@ -196,6 +209,12 @@ Alternatively, you can install the packages into your user's site packages locat
     $ cd pylearn2
     $ python setup.py develop --user
     $ cd ..
+    ```
+
+1. Install Pillow (Only required for GTSRB):
+
+    ```bash
+    $ pip install --user Pillow
     ```
 
 ### Download Datasets
@@ -214,8 +233,20 @@ Alternatively, you can install the packages into your user's site packages locat
     Occasionally the server with the MNIST dataset goes down, and the download will fail.
     If this happens try running the script at another time.
 
+1. Download GTSRB dataset:
+
+    From the training directory (i.e., `/path/to/BNN-PYNQ/bnn/src/training`), run the following:
+    ```bash
+    $ ./scripts/setup_gtsrb.sh
+    ```
+
+    The above script does the following:
+    * downloads the GTSRB dataset;
+    * extracts the relevant files;
+    * applies code patches to the image loading script, where necessary.
+
 ## Acknowledgements
 
 The source code in this directory was originally forked from [https://github.com/MatthieuCourbariaux/BinaryNet](https://github.com/MatthieuCourbariaux/BinaryNet) and is based on the following publication:
-[Binarized Neural Networks: Training Deep Neural Networks with Weights and Activations Constrained to +1 or -1.](http://arxiv.org/abs/1602.02830)
+[Binarized Neural Networks: Training Deep Neural Networks with Weights and Activations Constrained to +1 or -1.](http://arxiv.org/abs/1602.02830).
 

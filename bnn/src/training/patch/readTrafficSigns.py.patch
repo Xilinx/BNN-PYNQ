@@ -1,0 +1,23 @@
+--- Python code for GTSRB/readTrafficSigns.py	2010-12-02 19:29:38.000000000 +0000
++++ readTrafficSigns.py	2018-05-16 19:12:33.281532000 +0100
+@@ -12,7 +12,9 @@
+ #
+ # have fun, Christian
+ 
+-import matplotlib.pyplot as plt
++#import matplotlib.pyplot as plt
++import numpy as np
++from PIL import Image
+ import csv
+ 
+ # function for reading the images
+@@ -33,7 +35,8 @@
+         gtReader.next() # skip header
+         # loop over all images in current annotations file
+         for row in gtReader:
+-            images.append(plt.imread(prefix + row[0])) # the 1th column is the filename
++            #images.append(plt.imread(prefix + row[0])) # the 1th column is the filename
++            images.append(np.asarray(Image.open(prefix + row[0])))
+             labels.append(row[7]) # the 8th column is the label
+         gtFile.close()
+     return images, labels

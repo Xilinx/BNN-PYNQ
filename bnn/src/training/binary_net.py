@@ -1,6 +1,10 @@
 #BSD 3-Clause License
 #=======
 #
+#Copyright (c) 2018, Xilinx Inc.
+#All rights reserved.
+#
+#Based Matthieu Courbariaux's binary_net example code
 #Copyright (c) 2015-2016, Matthieu Courbariaux
 #All rights reserved.
 #
@@ -28,6 +32,7 @@
 #SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import time
+import sys
 
 from collections import OrderedDict
 
@@ -40,6 +45,7 @@ import theano
 import theano.tensor as T
 
 import lasagne
+import augmentors
 
 from theano.sandbox.rng_mrg import MRG_RandomStreams as RandomStreams
 
@@ -234,7 +240,13 @@ def train(train_fn,val_fn,
             X_val,y_val,
             X_test,y_test,
             save_path=None,
-            shuffle_parts=1):
+            shuffle_parts=1,
+            starting_epoch=1,
+            best_val_err=100,
+            best_epoch=1,
+            test_err=100,
+            test_loss=100,
+            rotations=None):
     
     # A function which shuffles a dataset
     def shuffle(X,y):
@@ -275,10 +287,17 @@ def train(train_fn,val_fn,
         # return new_X,new_y
     
     # This function trains the model a full epoch (on the whole dataset)
-    def train_epoch(X,y,LR):
+    def train_epoch(X,y,LR,rotations,oversize_pixels):
         
         loss = 0
         batches = len(X)/batch_size
+
+        if rotations != None:
+            (X, y) = augmentors.random_rotations(X, y, rotations, 1, extend=False)
+        random_crop = oversize_pixels[0] != 0 or oversize_pixels[1] != 0
+        if random_crop:
+            cropped_size = (X.shape[2]-oversize_pixels[0], X.shape[3]-oversize_pixels[1])
+            (X, y) = augmentors.random_crop(X, y, oversize_pixels, 1, cropped_size, extend=False)
         
         for i in range(batches):
             loss += train_fn(X[i*batch_size:(i+1)*batch_size],y[i*batch_size:(i+1)*batch_size],LR)
@@ -306,16 +325,32 @@ def train(train_fn,val_fn,
     
     # shuffle the train set
     X_train,y_train = shuffle(X_train,y_train)
-    best_val_err = 100
-    best_epoch = 1
-    LR = LR_start
+    starting_epoch -= 1 # epochs are printed as 1 to num_epochs.
+    if hasattr(num_epochs, '__int__'):
+        epochs = range(starting_epoch, num_epochs)
+        LRs = map(lambda e: LR_start*(LR_decay**e), epochs)
+    else:
+        if len(num_epochs) != len(LR_start):
+            print("num_epochs and learning_rate must be the same length")
+            exit()
+        epochs = range(starting_epoch, num_epochs[-1])
+        prev_epoch = 1
+        LRs = []
+        for lr,e in zip(LR_start, num_epochs):
+            LRs += [lr]*(e-prev_epoch)
+            prev_epoch = e
+        LRs += LR_start[-1:]
+        LRs[:starting_epoch] = []
+        num_epochs = num_epochs[-1]
     
+    oversize_pixels = (X_train.shape[2]-X_val.shape[2], X_train.shape[3]-X_val.shape[3])
+
     # We iterate over epochs:
-    for epoch in range(num_epochs):
+    for epoch, LR in zip(epochs, LRs):
         
         start_time = time.time()
         
-        train_loss = train_epoch(X_train,y_train,LR)
+        train_loss = train_epoch(X_train,y_train,LR,rotations,oversize_pixels)
         X_train,y_train = shuffle(X_train,y_train)
         
         val_err, val_loss = val_epoch(X_val,y_val)
