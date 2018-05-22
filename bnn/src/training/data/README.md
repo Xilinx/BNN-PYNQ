@@ -17,3 +17,9 @@ A subset of these patch were then chosen which had:
 
 The variation in the chosen patches was done to ensure the inference models were
 as resilient as possible to classifying non-traffic sign related images.
+
+## Acknowledgements
+
+Thanks to the [Institut Fur Neuroinformatik Benchmark team](http://benchmark.ini.rub.de/)
+for allowing us to provide you with this modified version of the GTSDB to provide background
+images.
