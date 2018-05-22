@@ -20,6 +20,6 @@ as resilient as possible to classifying non-traffic sign related images.
 
 ## Acknowledgements
 
-Thanks to the [Institut Fur Neuroinformatik Benchmark team](http://benchmark.ini.rub.de/)
+Thanks to the [Institut F&#252;r Neuroinformatik Benchmark Team](http://benchmark.ini.rub.de/)
 for allowing us to provide you with this modified version of the GTSDB to provide background
 images.
