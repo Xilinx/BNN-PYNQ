@@ -32,7 +32,7 @@ The overlay can be found here: [https://github.com/Xilinx/BNN-PYNQ](https://gith
     
 This python script trains an MLP (denoted LFC) on MNIST with BinaryNet.
 It should run for about 2 hours on a GRID K520 GPU (i.e., a g2.2xlarge instance on AWS.)
-The final test error should be around **1.60%**.
+The final test error should be around **1.52%**.
 
 ### CIFAR-10 ConvNet
 
@@ -43,12 +43,12 @@ The final test error should be around **1.60%**.
 This python script trains a ConvNet (denoted CNV) on CIFAR-10 with BinaryNet.
 It should run for about 43 hours on a GRID K520 GPU (i.e., a g2.2xlarge instance on AWS.)
 With cuDNN installed, it should be about 12 hours.
-The final test error should be around **20.42%**.
+The final test error should be around **19.91%**.
 
 ### German Traffic Sign Recognition Benchmark ConvNet
 
 ```bash
-    $ python gtsrb.py
+    $ python gtsrb.py -ip GTSRB
 ```
     
 This python script trains a ConvNet (denoted CNV) on GTSRB (with an extra \"junk\" class) with BinaryNet.
@@ -77,7 +77,7 @@ In order to train an LFC or a CNV network see the steps below.
 
 ## Generating Binary Weights Files
 
-Once the training process has finished, you'll have a file DATASET_parameters.npz (where DATASET is either "mnist" or "cifar10") containing a list of numpy arrays which correspond to the real trained weights in each layer.
+Once the training process has finished, you'll have a file DATASET_parameters.npz (where DATASET is either "mnist", "cifar10" or "gtsrb") containing a list of numpy arrays which correspond to the real trained weights in each layer.
 In order to load them into the [Pynq BNN Overlay](https://github.com/Xilinx/BNN-PYNQ) they need converted from real floating point values into binary values and packed into .bin files. 
 
 ```bash
