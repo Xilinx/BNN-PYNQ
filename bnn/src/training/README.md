@@ -52,9 +52,9 @@ The final test error should be around **19.91%**.
 ```
     
 This python script trains a ConvNet (denoted CNV) on GTSRB (with an extra \"junk\" class) with BinaryNet.
-It should run for about 43 hours on a GRID K520 GPU (i.e., a g2.2xlarge instance on AWS.)
-With cuDNN installed, it should be about 12 hours.
-The final test error should be around **20.42%**.
+It should run for about 32 hours on a GRID K520 GPU (i.e., a g2.2xlarge instance on AWS.)
+With cuDNN installed, it should be about 9 hours.
+The final test error should be around **2.81%**.
 
 ### Training Your Own Networks
 
