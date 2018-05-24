@@ -35,7 +35,7 @@ The repo is organized as follows:
 	-	src: contains the sources of the 2 networks, the libraries to rebuild them, and scripts to train and pack the weights:
 		- library: FINN library for HLS BNN descriptions, host code, script to rebuilt and drivers for the PYNQ (please refer to README for more details)
 		- network: BNN topologies (CNV and LFC) HLS top functions, host code and make script for HW and SW built (please refer to README for more details)
-        - training: scripts to train on the Cifar10 and MNIST datasets and scripts to pack the weights in a binary format which can be read by the BNN overlay
+        - training: scripts to train on the Cifar10, MNIST and GTSRB datasets and scripts to pack the weights in a binary format which can be read by the BNN overlay
 	-	bitstreams: with the bitstream for the 2 overlays
 	-	libraries: pre-compiled shared objects for low-level driver of the 2 overlays
 	-	params: set of trained parameters for the 2 networks:
