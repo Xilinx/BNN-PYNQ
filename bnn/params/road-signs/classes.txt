@@ -41,3 +41,4 @@ Pass by on left
 Roundabout
 End of no-overtaking zone
 End of no-overtaking zone for vehicles with a permitted gross weight over 3.5t including their trailers, and for tractors except passenger cars and buses
+Not a roadsign
