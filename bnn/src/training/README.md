@@ -85,7 +85,7 @@ In order to load them into the [Pynq BNN Overlay](https://github.com/Xilinx/BNN-
 ```
 
 These scripts will process the weights for the given dataset and place them into a new directory.
-In order to load these weights on the Pynq, place the resultant folder into the XILINX_BNN_ROOT/data directory on the Pynq device.
+In order to load these weights on the Pynq, place the resultant folder into the `/opt/python3.6/lib/python3.6/site-packages/bnn/params` directory on the Pynq device.
 
 ## Installing the Training Environment:
 
