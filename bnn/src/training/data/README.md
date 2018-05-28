@@ -23,3 +23,17 @@ as resilient as possible to classifying non-traffic sign related images.
 Thanks to the [Institut F&#252;r Neuroinformatik Benchmark Team](http://benchmark.ini.rub.de/)
 for allowing us to provide you with this modified version of the GTSDB to provide background
 images.
+
+If you plan to use this work, please cite the [GTSDB](http://benchmark.ini.rub.de/?section=gtsdb&subsection=news)
+paper, and explain the modifications stated above.
+The GTSDB citation is provided below:
+
+```
+@inproceedings{Houben-IJCNN-2013,
+   author = {Sebastian Houben and Johannes Stallkamp and Jan Salmen and Marc Schlipsing and Christian Igel},
+   booktitle = {International Joint Conference on Neural Networks},
+   title = {Detection of Traffic Signs in Real-World Images: The {G}erman {T}raffic {S}ign {D}etection {B}enchmark},
+   number = {1288},
+   year = {2013},
+}
+```
