@@ -53,73 +53,76 @@ extern "C" {
 
 class XlnkDriver : public DonutDriver
 {
-public:
-	XlnkDriver(uint32_t regBase, unsigned int regSize):
-		m_regSize(regSize) {
-		m_reg = reinterpret_cast<AccelReg*>(cma_mmap(regBase, regSize));
-		if (!m_reg) throw "Failed to allocate registers";
+ public:
+  XlnkDriver(uint32_t regBase, unsigned int regSize): m_regSize(regSize) {
+    m_reg = reinterpret_cast<AccelReg*>(cma_mmap(regBase, regSize));
+    if (!m_reg) {
+      throw "Failed to allocate registers";
 	}
+  }
 
-	virtual ~XlnkDriver() {
-		for (PhysMap::iterator iter = m_physmap.begin(); iter != m_physmap.end(); ++iter) {
-			cma_free(iter->second);
-		}
-		cma_munmap(m_reg, m_regSize);
+  virtual ~XlnkDriver() {
+    for (PhysMap::iterator iter = m_physmap.begin(); iter != m_physmap.end(); ++iter) {
+      cma_free(iter->second);
+    }
+    cma_munmap(m_reg, m_regSize);
+  }
+
+  virtual void copyBufferHostToAccel(void* hostBuffer, void* accelBuffer, unsigned int numBytes) {
+    PhysMap::iterator iter = m_physmap.find(accelBuffer);
+    if (iter == m_physmap.end()) {
+      throw "Invalid buffer specified";
+    }
+    void* virt = iter->second;
+    std::memcpy(virt, hostBuffer, numBytes);
+  }
+
+  virtual void copyBufferAccelToHost(void* accelBuffer, void* hostBuffer, unsigned int numBytes) {
+    PhysMap::iterator iter = m_physmap.find(accelBuffer);
+    if (iter == m_physmap.end()) {
+      throw "Invalid buffer specified";
+    }
+    void* virt = iter->second;
+    std::memcpy(hostBuffer, virt, numBytes);
+  }
+
+  virtual void* allocAccelBuffer(unsigned int numBytes) {
+    void* virt = cma_alloc(numBytes, false);
+    if (!virt) {
+      return 0;
 	}
+	void* phys = reinterpret_cast<void*>(cma_get_phy_addr(virt));
+	m_physmap.insert(std::make_pair(phys, virt));
+	return phys;
+  }
 
-	virtual void copyBufferHostToAccel(void* hostBuffer, void* accelBuffer, unsigned int numBytes) {
-		PhysMap::iterator iter = m_physmap.find(accelBuffer);
-		if (iter == m_physmap.end()) {
-			throw "Invalid buffer specified";
-		}
-		void* virt = iter->second;
-		std::memcpy(virt, hostBuffer, numBytes);
+  virtual void deallocAccelBuffer(void* buffer) {
+	PhysMap::iterator iter = m_physmap.find(buffer);
+	if (iter == m_physmap.end()) {
+	  throw "Invalid pointer freed";
 	}
+	cma_free(iter->second);
+	m_physmap.erase(iter);
+  }
 
-	virtual void copyBufferAccelToHost(void* accelBuffer, void* hostBuffer, unsigned int numBytes) {
-		PhysMap::iterator iter = m_physmap.find(accelBuffer);
-		if (iter == m_physmap.end()) {
-			throw "Invalid buffer specified";
-		}
-		void* virt = iter->second;
-		std::memcpy(hostBuffer, virt, numBytes);
+ protected:
+  virtual void writeRegAtAddr(unsigned int addr, AccelReg regValue) {
+	if (addr & 0x3) {
+		throw "Unaligned register write";
 	}
+	m_reg[addr >> 2] = regValue;
+  }
 
-	virtual void* allocAccelBuffer(unsigned int numBytes) {
-		void* virt = cma_alloc(numBytes, false);
-		if (!virt) return 0;
-		void* phys = reinterpret_cast<void*>(cma_get_phy_addr(virt));
-		m_physmap.insert(std::make_pair(phys, virt));
-		return phys;
-	}
+  virtual AccelReg readRegAtAddr(unsigned int addr) {
+	if (addr & 0x3) throw "Unaligned register read";
+	return m_reg[addr >> 2];
+  }
 
-	virtual void deallocAccelBuffer(void* buffer) {
-		PhysMap::iterator iter = m_physmap.find(buffer);
-		if (iter == m_physmap.end()) {
-			throw "Invalid pointer freed";
-		}
-		cma_free(iter->second);
-		m_physmap.erase(iter);
-	}
-
-protected:
-	virtual void writeRegAtAddr(unsigned int addr, AccelReg regValue) {
-		if (addr & 0x3) throw "Unaligned register write";
-		m_reg[addr >> 2] = regValue;
-	}
-
-	virtual AccelReg readRegAtAddr(unsigned int addr) {
-		if (addr & 0x3) throw "Unaligned register read";
-		return m_reg[addr >> 2];
-	}
-
-private:
-	typedef std::map<void*, void*> PhysMap;
-	PhysMap m_physmap;
-	AccelReg* m_reg;
-	uint32_t m_regSize;
-	
+ private:
+  typedef std::map<void*, void*> PhysMap;
+  PhysMap m_physmap;
+  AccelReg* m_reg;
+  uint32_t m_regSize;	
 };
-
 
 #endif

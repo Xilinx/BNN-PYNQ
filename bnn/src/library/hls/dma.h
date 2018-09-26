@@ -28,45 +28,49 @@
  *  OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  *  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- *****************************************************************************/
+ ******************************************************************************/
+
 /******************************************************************************
  *
+ *  Authors: Giulio Gambardella <giuliog@xilinx.com>
+ *           Thomas B. Preusser <thomas.preusser@utexas.edu>
+ *             Marie-Curie Fellow, Xilinx Ireland, Grant Agreement No. 751339
+ *           Christoph Doehring <cdoehrin@xilinx.com>
  *
- * @file dma.h
+ *  @file dma.h
  *
- * Library of templated HLS functions for BNN deployment. 
- * This file lists a set of functions to access memory mapped values into 
- * streams 
+ *  Library of templated HLS functions for BNN deployment. 
+ *  This file lists a set of functions to access memory mapped values into 
+ *  streams. 
  *
  *****************************************************************************/
+
 #include <ap_int.h>
 #include <hls_stream.h>
 
-// essentially small DMA generators, moving data between mem-mapped arrays and
-// streams
+// essentially small DMA generators, moving data between mem-mapped arrays and streams
 template<unsigned int DataWidth, unsigned int numBytes>
 void Mem2Stream(ap_uint<DataWidth> * in, hls::stream<ap_uint<DataWidth> > & out) {
-	CASSERT_DATAFLOW(DataWidth % 8 == 0);
-	const unsigned int numWords = numBytes / (DataWidth / 8);
-	CASSERT_DATAFLOW(numWords != 0);
-	for (unsigned int i = 0; i < numWords; i++) {
+  CASSERT_DATAFLOW(DataWidth % 8 == 0);
+  const unsigned int numWords = numBytes / (DataWidth / 8);
+  CASSERT_DATAFLOW(numWords != 0);
+  for (unsigned int i = 0; i < numWords; i++) {
 #pragma HLS PIPELINE II=1
-		ap_uint<DataWidth> e = in[i];
-		out.write(e);
-	}
+    ap_uint<DataWidth> e = in[i];
+    out.write(e);
+  }
 }
 
 template<unsigned int DataWidth, unsigned int numBytes>
 void Stream2Mem(hls::stream<ap_uint<DataWidth> > & in, ap_uint<DataWidth> * out) {
-	CASSERT_DATAFLOW(DataWidth % 8 == 0);
-
-	const unsigned int numWords = numBytes / (DataWidth / 8);
-	CASSERT_DATAFLOW(numWords != 0);
-	for (unsigned int i = 0; i < numWords; i++) {
+  CASSERT_DATAFLOW(DataWidth % 8 == 0);
+  const unsigned int numWords = numBytes / (DataWidth / 8);
+  CASSERT_DATAFLOW(numWords != 0);
+  for (unsigned int i = 0; i < numWords; i++) {
 #pragma HLS PIPELINE II=1
-		ap_uint<DataWidth> e = in.read();
-		out[i] = e;
-	}
+    ap_uint<DataWidth> e = in.read();
+	out[i] = e;
+  }
 }
 
 // call different statically-sized variants of Mem2Stream and Stream2Mem to
@@ -75,42 +79,40 @@ void Stream2Mem(hls::stream<ap_uint<DataWidth> > & in, ap_uint<DataWidth> * out)
 // the 16 here can be any power of two (has to be power of two, otherwise
 // checking the modulo takes a lot more resources)
 template<unsigned int DataWidth, unsigned int numBytes>
-void Mem2Stream_Batch(ap_uint<DataWidth> * in,
-		hls::stream<ap_uint<DataWidth> > & out, const unsigned int numReps) {
-	const unsigned int indsPerRep = numBytes / (DataWidth / 8);
-	unsigned int rep = 0;
-	// make sure Mem2Stream does not get inlined here
-	// we lose burst inference otherwise
-	while (rep != numReps) {
-		unsigned int repsLeft = numReps - rep;
-		if ((repsLeft & 0xF) == 0) {
-			// repsLeft divisable by 16, read 16 images
-			Mem2Stream<DataWidth, numBytes * 16>(&in[rep * indsPerRep], out);
-			rep += 16;
-		} else {
-			// fallback, read single image
-			Mem2Stream<DataWidth, numBytes>(&in[rep * indsPerRep], out);
-			rep += 1;
-		}
-	}
+void Mem2Stream_Batch(ap_uint<DataWidth> * in, hls::stream<ap_uint<DataWidth> > & out, const unsigned int numReps) {
+  const unsigned int indsPerRep = numBytes / (DataWidth / 8);
+  unsigned int rep = 0;
+  // make sure Mem2Stream does not get inlined here
+  // we lose burst inference otherwise
+  while (rep != numReps) {
+    unsigned int repsLeft = numReps - rep;
+    if ((repsLeft & 0xF) == 0) {
+      // repsLeft divisable by 16, read 16 images
+      Mem2Stream<DataWidth, numBytes * 16>(&in[rep * indsPerRep], out);
+      rep += 16;
+    } else {
+      // fallback, read single image
+      Mem2Stream<DataWidth, numBytes>(&in[rep * indsPerRep], out);
+      rep += 1;
+    }
+  }
 }
 template<unsigned int DataWidth, unsigned int numBytes>
-void Stream2Mem_Batch(hls::stream<ap_uint<DataWidth> > & in,
-		ap_uint<DataWidth> * out, const unsigned int numReps) {
-	const unsigned int indsPerRep = numBytes / (DataWidth / 8);
-	unsigned int rep = 0;
-	// make sure Stream2Mem does not get inlined here
-	// we lose burst inference otherwise
-	while (rep != numReps) {
-		unsigned int repsLeft = numReps - rep;
-		if ((repsLeft & 0xF) == 0) {
-			// repsLeft divisable by 16, write 16 images
-			Stream2Mem<DataWidth, numBytes * 16>(in, &out[rep * indsPerRep]);
-			rep += 16;
-		} else {
-			// fallback, write single image
-			Stream2Mem<DataWidth, numBytes>(in, &out[rep * indsPerRep]);
-			rep += 1;
-		}
-	}
+void Stream2Mem_Batch(hls::stream<ap_uint<DataWidth> > & in, ap_uint<DataWidth> * out, const unsigned int numReps) {
+  const unsigned int indsPerRep = numBytes / (DataWidth / 8);
+  unsigned int rep = 0;
+  // make sure Stream2Mem does not get inlined here
+  // we lose burst inference otherwise
+  while (rep != numReps) {
+    unsigned int repsLeft = numReps - rep;
+    if ((repsLeft & 0xF) == 0) {
+      // repsLeft divisable by 16, write 16 images
+      Stream2Mem<DataWidth, numBytes * 16>(in, &out[rep * indsPerRep]);
+      rep += 16;
+    } else {
+      // fallback, write single image
+      Stream2Mem<DataWidth, numBytes>(in, &out[rep * indsPerRep]);
+      rep += 1;
+    }
+  }
 }

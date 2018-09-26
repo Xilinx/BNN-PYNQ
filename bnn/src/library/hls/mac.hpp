@@ -28,15 +28,28 @@
  *  OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  *  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- *****************************************************************************
- *  Authors: Thomas B. Preusser <thomas.preusser@utexas.edu>
+ *****************************************************************************/
+
+/*****************************************************************************
+ *
+ *  Authors: Giulio Gambardella <giuliog@xilinx.com>
+ *           Thomas B. Preusser <thomas.preusser@utexas.edu>
  *             Marie-Curie Fellow, Xilinx Ireland, Grant Agreement No. 751339
+ *           Christoph Doehring <cdoehrin@xilinx.com>
+ *
+ *  @file mac.hpp
+ *
+ *  Library of templated HLS functions for BNN deployment.
+ *  This file lists a set of convenience funtions used to implement
+ *  multipliers with selectable implementation resource
  *
  *  This project has received funding from the European Union's Framework
  *  Programme for Research and Innovation Horizon 2020 (2014-2020) under
  *  the Marie Skłodowska-Curie Grant Agreement No. 751339.
  *
- *****************************************************************************
+ *****************************************************************************/
+ 
+/*****************************************************************************
  * MAC operation template:
  *
  *   mac<N, T, TC, TD>(T a, TC c[N], TD d[N])
@@ -45,7 +58,8 @@
  * All template arguments but N can typically be inferred.
  *
  *   mac<ap_uint<14>>(0, c, d)
- */
+ *****************************************************************************/
+ 
 #ifndef MAC_HPP
 #define MAC_HPP
 
@@ -57,7 +71,8 @@
 template<typename TC, typename TD>
 auto mul(TC const &c, TD const &d, ap_resource_dflt const&) -> decltype(c*d) {
 #pragma HLS inline
-  return  c*d;
+  auto  r = c*d;
+  return  r;
 }
 
 //- Request LUT

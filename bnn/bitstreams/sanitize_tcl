@@ -1,2 +1,0 @@
-#!/bin/bash
-exec sed -i -e'\#BNN-PYNQ/#d' *.tcl

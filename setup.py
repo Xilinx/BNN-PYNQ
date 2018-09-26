@@ -36,45 +36,64 @@ import os
 from glob import glob
 import site 
 
-if 'BOARD' not in os.environ or not (os.environ['BOARD'] == 'Pynq-Z1' or os.environ['BOARD'] == 'Pynq-Z2'):
-    print("Only supported on a Pynq Z1 or Z2 boards")
-    exit(1)
-
-
+if os.environ['BOARD'] != 'Ultra96' and os.environ['BOARD'] != 'Pynq-Z1' and os.environ['BOARD'] != 'Pynq-Z2':
+	print("Only supported on a Ultra96, Pynq-Z1 or Pynq-Z2 Board")
+	exit(1)
 
 setup(
-    name = "bnn-pynq",
-    version = bnn.__version__,
-    url = 'kwa/pynq',
-    license = 'Apache Software License',
-    author = "Nicholas Fraser, Giulio Gambardella, Peter Ogden, Yaman Umuroglu",
-    author_email = "pynq_support@xilinx.com",
-    include_package_data = True,
-    packages = ['bnn'],
-    package_data = {
-    '' : ['*.bit','*.tcl','*.so','*.bin','*.txt', '*.cpp', '*.h', '*.sh'],
-    },    
-    data_files = [(os.path.join('/home/xilinx/jupyter_notebooks/bnn',root.replace('notebooks/','')), [os.path.join(root, f) for f in files]) for root, dirs, files in os.walk('notebooks/')],
-    #data_files = [(os.path.join('/home/xilinx/jupyter_notebooks/bnn',root.replace('notebooks/','')), [os.path.join(root, f) for f in files]) for root, dirs, files in os.walk('bnn/src/')],
-    description = "Classification using a hardware accelerated binary neural network"
-   
+	name = "bnn-pynq",
+	version = bnn.__version__,
+	url = 'kwa/pynq',
+	license = 'Apache Software License',
+	author = "Nicholas Fraser, Giulio Gambardella, Peter Ogden, Yaman Umuroglu, Christoph Doehring",
+	author_email = "pynq_support@xilinx.com",
+	include_package_data = True,
+	packages = ['bnn'],
+	package_data = {
+	'' : ['*.bit','*.tcl','*.so','*.bin','*.txt', '*.cpp', '*.h', '*.sh'],
+	},
+	data_files = [(os.path.join('/home/xilinx/jupyter_notebooks/bnn',root.replace('notebooks/','')), [os.path.join(root, f) for f in files]) for root, dirs, files in os.walk('notebooks/')],
+	description = "Classification using a hardware accelerated neural network with different precision for weights and activation"
 )
 
+# compilation during installation can be done after 2018.3 is available
 
-def run_make(src_path, network, output_type):
-    status = subprocess.check_call(["bash", src_path + "/make-sw.sh", network, output_type])
-    if status is not 0:
-        print("Error while running make for",network,output_type,"Exiting..")
-        exit(1)
-    shutil.copyfile( src_path + "/output/sw/" + output_type + "-" + network + ".so", src_path + "../../libraries/" +  output_type + "-" + network + ".so")
+# if os.environ['BOARD'] == "Ultra96":
+	# PLATFORM="ultra96"
+# else:
+	# PLATFORM="pynqZ1-Z2"
 
-if len(sys.argv) > 1 and sys.argv[1] == 'install' and 'VIVADOHLS_INCLUDE_PATH' in os.environ:
-   os.environ["XILINX_BNN_ROOT"] = site.getsitepackages()[0] + "/bnn/src/"
-   XILINX_BNN_ROOT=site.getsitepackages()[0]
-   #BNN_ROOT_DIR = os.path.dirname(os.path.realpath(__file__))
-   run_make(XILINX_BNN_ROOT+"/bnn/src/network/", "cnv-pynq" ,"python_sw")
-   run_make(XILINX_BNN_ROOT+"/bnn/src/network/", "lfc-pynq" ,"python_sw")
-   run_make(XILINX_BNN_ROOT+"/bnn/src/network/", "cnv-pynq" ,"python_hw")
-   run_make(XILINX_BNN_ROOT+"/bnn/src/network/", "lfc-pynq" ,"python_hw")
-else:
-  print("VIVADOHLS_INCLUDE_PATH variable not set, the source will not be recompiled.",file=sys.stdout)
+# def run_make(src_path, network, output_type):
+	# status = subprocess.check_call(["bash", src_path + "/make-sw.sh", network, output_type])
+	# if status is not 0:
+		# print("Error while running make for",network,output_type,"Exiting..")
+		# exit(1)
+	# shutil.copyfile(src_path + "/output/sw/" + output_type + "-" + network + "-" + PLATFORM + ".so", src_path + "../../libraries/" + PLATFORM + "/" + output_type + "-" + network + "-" + PLATFORM + ".so")
+
+# if 'VIVADOHLS_INCLUDE_PATH' in os.environ:
+	# print("Shared objects will be recompiled now...This may take a while")
+	# os.environ["XILINX_BNN_ROOT"]="bnn/src/"
+	# if not os.path.isdir("bnn/libraries"):
+		# os.mkdir("bnn/libraries")
+	# # make sw shared lib
+	# print("Make software lib...")
+	# run_make("bnn/src/network/", "cnvW1A1", "python_sw")
+	# run_make("bnn/src/network/", "cnvW1A2", "python_sw")
+	# run_make("bnn/src/network/", "cnvW2A2", "python_sw")
+	# run_make("bnn/src/network/", "lfcW1A1", "python_sw")
+	# run_make("bnn/src/network/", "lfcW1A2", "python_sw")
+
+	# # make hw hared lib
+	# print("Make software lib...")
+	# run_make("bnn/src/network/", "cnvW1A1", "python_hw")
+	# run_make("bnn/src/network/", "cnvW1A2", "python_hw")
+	# run_make("bnn/src/network/", "cnvW2A2", "python_hw")
+	# run_make("bnn/src/network/", "lfcW1A1", "python_hw")
+	# run_make("bnn/src/network/", "lfcW1A2", "python_hw")
+# else:
+	# print("VIVADOHLS_INCLUDE_PATH variable not set, the source will not be recompiled.",file=sys.stdout)
+
+# copy notebooks
+if os.path.isdir(os.environ["PYNQ_JUPYTER_NOTEBOOKS"]+"/bnn/"):
+	shutil.rmtree(os.environ["PYNQ_JUPYTER_NOTEBOOKS"]+"/bnn/")
+shutil.copytree("notebooks/",os.environ["PYNQ_JUPYTER_NOTEBOOKS"]+"/bnn/")

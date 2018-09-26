@@ -27,19 +27,32 @@
  *  WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
  *  OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  *  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *******************************************************************************/
+
+/*******************************************************************************
  *
- *****************************************************************************
- *  Authors: Thomas B. Preußer <thomas.preusser@utexas.edu>
+ *  Authors: Giulio Gambardella <giuliog@xilinx.com>
+ *           Thomas B. Preusser <thomas.preusser@utexas.edu>
  *             Marie-Curie Fellow, Xilinx Ireland, Grant Agreement No. 751339
+ *           Christoph Doehring <cdoehrin@xilinx.com>
+ *
+ *  @file weights.hpp
+ *
+ *  Library of templated HLS classes for BNN deployment. 
+ *  This file lists a set of classes used to implement  
+ *  weights in neural network. 
  *
  *  This project has received funding from the European Union's Framework
  *  Programme for Research and Innovation Horizon 2020 (2014-2020) under
  *  the Marie Skłodowska-Curie Grant Agreement No. 751339.
- */
+ *
+ *******************************************************************************/
+
 #ifndef WEIGHTS_HPP
 #define WEIGHTS_HPP
 
 #include <ap_int.h>
+#include <array>
 
 /**
  * A binary weight storage adapter that translates the internal
@@ -48,10 +61,10 @@
  */
 template<unsigned SIMD, unsigned PE, unsigned TILES>
 class BinaryWeights {
-public:
+ public:
   ap_uint<SIMD>  m_weights[PE][TILES];
 
-private:
+ private:
   /**
    * Temporary container for the tile index to implement the
    * memory access in pe -> tile order.
@@ -60,20 +73,67 @@ private:
     BinaryWeights const &m_par;
     unsigned      const  m_idx;
 
-  public:
+   public:
     TileIndex(BinaryWeights const &par, unsigned const  idx)
       : m_par(par), m_idx(idx) {
 #pragma HLS inline
     }
 
-  public:
+   public:
     ap_uint<SIMD> operator[](unsigned const  pe) const {
 #pragma HLS inline
       return  m_par.m_weights[pe][m_idx];
     }
   };
 
-public:
+ public:
+  TileIndex weights(unsigned const  tile) const {
+#pragma HLS inline
+    return  TileIndex(*this, tile);
+  }
+};
+
+/**
+ * A ap_int weight storage adapter that translates the internal
+ * organization optimized for storage to the generalized access
+ * by the MVAU.
+ */
+template<unsigned SIMD, typename WT ,unsigned PE, unsigned TILES>
+class FixedPointWeights {
+ public:
+  ap_uint<SIMD*WT::width>  m_weights[PE][TILES];
+
+ private:
+  /**
+   * Temporary container for the tile index to implement the
+   * memory access in pe -> tile order.
+   */
+  class TileIndex {
+    FixedPointWeights const &m_par;
+    unsigned          const  m_idx;
+
+   public:
+    TileIndex(FixedPointWeights const &par, unsigned const  idx)
+      : m_par(par), m_idx(idx) {
+#pragma HLS inline
+    }
+
+   public:
+    std::array<WT,SIMD> operator[](unsigned const  pe) const {
+#pragma HLS inline
+      std::array<WT,SIMD> temp;
+	  for(unsigned int i=0; i<SIMD; i++) {
+#pragma HLS unroll
+        ap_uint<WT::width> local_temp;
+        local_temp = m_par.m_weights[pe][m_idx]((i+1)*WT::width-1, i*WT::width);
+        WT value = WT (local_temp);
+        temp[i] = value;
+      }
+      return  temp;
+    }
+  };
+
+ public:
   TileIndex weights(unsigned const  tile) const {
 #pragma HLS inline
     return  TileIndex(*this, tile);

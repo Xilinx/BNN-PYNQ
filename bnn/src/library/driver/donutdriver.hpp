@@ -34,8 +34,8 @@
  *
  * @file donut-driver.hpp
  *
- * Define the DonutDriver class used to access axi-lite registers of the BNN
- * HW accelerator
+ * Define the DonutDriver class used to access axi-lite registers of the HW
+ * accelerator
  * 
  *
  *****************************************************************************/

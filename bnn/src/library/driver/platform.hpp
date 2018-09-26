@@ -44,6 +44,7 @@
 
 #ifndef PLATFORM_H_
 #define PLATFORM_H_
+
 #include "donutdriver.hpp"
 
 DonutDriver * initPlatform(bool cleanSIGINTExit = true);

@@ -29,17 +29,22 @@
  *  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  *****************************************************************************/
+
 /******************************************************************************
  *
+ *  Authors: Giulio Gambardella <giuliog@xilinx.com>
+ *           Thomas B. Preusser <thomas.preusser@utexas.edu>
+ *             Marie-Curie Fellow, Xilinx Ireland, Grant Agreement No. 751339
+ *           Christoph Doehring <cdoehrin@xilinx.com>
  *
- * @file convlayer.h
+ *  @file convlayer.h
  *
- * Library of templated HLS functions for BNN deployment. 
- * This file lists a set of convenience funtions used to implement  
- * convolutional layers
- * 
+ *  Library of templated HLS functions for BNN deployment.
+ *  This file lists a set of convenience funtions used to implement
+ *  convolutional layers.
  *
  *****************************************************************************/
+
 #ifndef CONVLAYER_H
 #define CONVLAYER_H
 
@@ -61,29 +66,30 @@ template<
 		
 		typename TSrcI = Identity,      // redefine I/O interpretation as needed for input activations
 		typename TDstI = Identity,		// redefine I/O interpretation as needed for output activations
-		typename TWeightI = Identity,	// redefine I/O interpretation as needed for output activations
+		typename TWeightI = Identity,	// redefine I/O interpretation as needed for weigths
 
 		int InStreamW, int OutStreamW,  // safely deducible (stream width must be int though!)
-		typename TW,   typename TA
+		typename TW,   typename TA,  typename R
 >
 void ConvLayer_Batch(hls::stream<ap_uint<InStreamW>>  &in,
 			    hls::stream<ap_uint<OutStreamW>> &out,
 			    TW const        &weights,
 			    TA const        &activation,
-			    unsigned const   reps) {
+			    unsigned const   reps,
+				R const &r) {
 #pragma HLS INLINE
-  constexpr unsigned int MatrixW = ConvKernelDim * ConvKernelDim * IFMChannels;
-  constexpr unsigned int MatrixH = OFMChannels;
-  constexpr unsigned int InpPerImage = IFMDim*IFMDim*IFMChannels/InStreamW;
+  unsigned const MatrixW = ConvKernelDim * ConvKernelDim * IFMChannels;
+  unsigned const MatrixH = OFMChannels;
+  unsigned const InpPerImage = IFMDim*IFMDim*IFMChannels/InStreamW * TSrcI::width;
   WidthAdjustedInputStream <InStreamW, SIMD*TSrcI::width, InpPerImage>  wa_in (in,  reps);
-  WidthAdjustedOutputStream <PE, OFMChannels, OFMDim * OFMDim * (OFMChannels / PE)>  mvOut (out,  reps);
+  WidthAdjustedOutputStream <PE*TDstI::width, OutStreamW, OFMDim * OFMDim * (OFMChannels / PE)>  mvOut (out,  reps);
   hls::stream<ap_uint<SIMD*TSrcI::width> > convInp("StreamingConvLayer_Batch.convInp");
- ConvolutionInputGenerator<ConvKernelDim, IFMChannels, TSrcI::width, IFMDim,
+  ConvolutionInputGenerator<ConvKernelDim, IFMChannels, TSrcI::width, IFMDim,
 			OFMDim, SIMD,1>(wa_in, convInp, reps);
   Matrix_Vector_Activate_Batch<MatrixW, MatrixH, SIMD, PE, TSrcI, TDstI, TWeightI>
     (static_cast<hls::stream<ap_uint<SIMD*TSrcI::width>>&>(convInp),
      static_cast<hls::stream<ap_uint<PE*TDstI::width>>&>  (mvOut),
-     weights, activation, reps* OFMDim * OFMDim);
+     weights, activation, reps* OFMDim * OFMDim, r);
 }
-#endif
 
+#endif

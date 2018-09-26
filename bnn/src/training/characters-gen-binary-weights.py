@@ -36,18 +36,25 @@ import finnthesizer as fth
 if __name__ == "__main__":
     bnnRoot = "."
     npzFile = bnnRoot + "/char_parameters.npz"
-    targetDirBin = bnnRoot + "/nist"
-    
-    simdCounts = [64, 32, 64, 8]
-    peCounts = [32, 64, 32, 16]
-    
+    targetDirBin = bnnRoot + "/binparam-lfcW1A1-pynq-nist"
+    targetDirHLS = bnnRoot + "/binparam-lfcW1A1-pynq-nist/hw"
+
+	simdCounts = [64, 32, 64,  8]
+    peCounts   = [32, 64, 32, 16]
+
+    WeightsPrecisions_fractional    = [0, 0, 0, 0]
+    ActivationPrecisions_fractional = [0, 0, 0, 0]
+    InputPrecisions_fractional      = [0, 0, 0, 0]
+    WeightsPrecisions_integer       = [1, 1, 1, 1]
+    ActivationPrecisions_integer    = [1, 1, 1, 1]
+    InputPrecisions_integer         = [1, 1, 1, 1]
     #classes = map(lambda x: str(x), range(61))
     classes = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", #Digits
 "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", #Upper case
 "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"] #Lower case
     
-    fth.convertFCNetwork(npzFile, targetDirBin, simdCounts, peCounts)
-    
+    fth.convertFCNetwork(npzFile, targetDirBin, targetDirHLS, simdCounts, peCounts, WeightsPrecisions_fractional, ActivationPrecisions_fractional, InputPrecisions_fractional, WeightsPrecisions_integer, ActivationPrecisions_integer, InputPrecisions_integer)
+
     with open(targetDirBin + "/classes.txt", "w") as f:
         f.write("\n".join(classes))
 

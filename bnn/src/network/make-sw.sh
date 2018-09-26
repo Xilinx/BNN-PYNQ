@@ -41,37 +41,48 @@
  #
 ###############################################################################
 
-NETWORKS=$(ls -d *-*/ | cut -f1 -d'/' | tr "\n" " ")
+NETWORKS=$(ls -d cnv*/ lfc*/ | cut -f1 -d'/' | tr "\n" " ")
 
 if [ "$#" -ne 2 ]; then
-  echo "Usage: $0 <network> <platform>" >&2
-  echo "where <network> = $NETWORKS" >&2
-  echo "<platform> = python_sw python_hw" >&2
+  echo "Usage: $0 <network> <runtime> where ">&2
+  echo "<network> = $NETWORKS" >&2
+  echo "<runtime> = python_sw python_hw" >&2
   exit 1
 fi
 
 NETWORK=$1
-PLATFORM=$2
+RUNTIME=$2
 
 if [ -z "$XILINX_BNN_ROOT" ]; then
-    echo "Need to set XILINX_BNN_ROOT"
-    exit 1
+  echo "Need to set XILINX_BNN_ROOT"
+  exit 1
 fi
 
 if [ -z "$VIVADOHLS_INCLUDE_PATH" ]; then
-    echo "Need to set VIVADOHLS_INCLUDE_PATH to rebuild from source"
-    echo "The pre-compiled shared objects will be included"
-    exit 1
+  echo "Need to set VIVADOHLS_INCLUDE_PATH to rebuild from source"
+  echo "The pre-compiled shared objects will be included"
+  exit 1
 fi  
 
 OLD_DIR=$(pwd)
 cd $XILINX_BNN_ROOT
-if [ -d "${XILINX_BNN_ROOT}/xilinx-tiny-cnn/" ]; then
-	echo "xilinx-tiny-cnn already cloned"
+if [ -d "xilinx-tiny-cnn/" ]; then
+  echo "xilinx-tiny-cnn already cloned"
 else
-	git clone https://github.com/Xilinx/xilinx-tiny-cnn.git
+  git clone https://github.com/Xilinx/xilinx-tiny-cnn.git
 fi
 cd $OLD_DIR
+
+if [[ ("$BOARD" == "Pynq-Z1") || ("$BOARD" == "Pynq-Z2") ]]; then
+  DEF_BOARD="PYNQ"
+  PLATFORM="pynqZ1-Z2"  
+elif [[ ("$BOARD" == "Ultra96") ]]; then
+  DEF_BOARD="ULTRA"
+  PLATFORM="ultra96"
+else
+  echo "Error: BOARD variable has to be Ultra96, Pynq-Z1 and Pynq-Z2 Board."
+  exit 1
+fi
 
 TINYCNN_PATH=$XILINX_BNN_ROOT/xilinx-tiny-cnn
 BNN_PATH=$XILINX_BNN_ROOT/network
@@ -88,16 +99,17 @@ SRCS_HOST=$BNN_PATH/$NETWORK/sw/main.cpp
 
 OUTPUT_DIR=$XILINX_BNN_ROOT/network/output/sw
 mkdir -p $OUTPUT_DIR
-OUTPUT_FILE="$OUTPUT_DIR/$PLATFORM-$NETWORK"
+OUTPUT_FILE="$OUTPUT_DIR/$RUNTIME-$NETWORK-$PLATFORM"
 
-if [[ ("$PLATFORM" == "python_sw") ]]; then
+
+if [[ ("$RUNTIME" == "python_sw") ]]; then
   SRCS_HOST=$BNN_PATH/$NETWORK/sw/main_python.cpp
   SRCS_ALL="$SRCS_HOSTLIB $SRCS_HLSTOP $SRCS_HOST"
   g++ -g -DOFFLOAD -DRAWHLS -std=c++11 -pthread -O2 -fPIC -shared $SRCS_ALL -I$VIVADOHLS_INCLUDE_PATH -I$TINYCNN_PATH -I$HOSTLIB -I$HLSLIB -I$HLSTOP -o $OUTPUT_FILE.so
-elif [[ ("$PLATFORM" == "python_hw") ]]; then
+elif [[ ("$RUNTIME" == "python_hw") ]]; then
   SRCS_HOST=$BNN_PATH/$NETWORK/sw/main_python.cpp
   SRCS_ALL="$DRIVER_PATH/platform-xlnk.cpp $SRCS_HOSTLIB $SRCS_HOST"
-  g++ -g -DOFFLOAD -std=c++11 -pthread -O3 -fPIC -shared $SRCS_ALL -I$DRIVER_PATH -I$VIVADOHLS_INCLUDE_PATH -I$TINYCNN_PATH -I$HOSTLIB -I$HLSLIB -I$HLSTOP -o $OUTPUT_FILE.so -lsds_lib
+  g++ -g -DOFFLOAD -D$DEF_BOARD -std=c++11 -pthread -O3 -fPIC -shared $SRCS_ALL -I$DRIVER_PATH -I$VIVADOHLS_INCLUDE_PATH -I$TINYCNN_PATH -I$HOSTLIB -I$HLSLIB -I$HLSTOP -o $OUTPUT_FILE.so -lcma
 fi
 
 echo "Output at $OUTPUT_FILE"

@@ -28,51 +28,56 @@
  *  OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  *  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- *****************************************************************************/
+ ******************************************************************************/
+ 
 /******************************************************************************
  *
+ *  Authors: Giulio Gambardella <giuliog@xilinx.com>
+ *           Thomas B. Preusser <thomas.preusser@utexas.edu>
+ *             Marie-Curie Fellow, Xilinx Ireland, Grant Agreement No. 751339
+ *           Christoph Doehring <cdoehrin@xilinx.com>
  *
- * @file stream-tools.h
+ *  @file stream-tools.h
  *
- * Library of templated HLS functions for BNN deployment. 
- * This file lists a set of convenience funtions used to adapt stream size, 
- * remove unnecessary streams (padding) and casting
- * 
+ *  Library of templated HLS functions for BNN deployment. 
+ *  This file lists a set of convenience funtions used to adapt stream size, 
+ *  remove unnecessary streams (padding) and casting
  *
- *****************************************************************************/
+ ******************************************************************************/
+
 #ifndef STREAMTOOLS_H
 #define STREAMTOOLS_H
 
 // only let the first X elements of a stream to pass through, the remainder
 // are consumed from input but not re-emitted from the output
 // useful for getting rid of e.g. padding words
-template<unsigned int DataWidth,		// stream width
+template<unsigned int DataWidth,    // stream width
 		unsigned int NumAllowed, 	// number of words to pass through
-		unsigned int NumTotal // total number of words (NumTotal-NumAllowed swallowed)
+		unsigned int NumTotal       // total number of words (NumTotal-NumAllowed swallowed)
 >
 void StreamLimiter(hls::stream<ap_uint<DataWidth> > & in,
 		hls::stream<ap_uint<DataWidth> > & out) {
-	CASSERT_DATAFLOW(NumTotal >= NumAllowed);
-	unsigned int numLeft = NumAllowed;
-	for (unsigned int i = 0; i < NumTotal; i++) {
+  CASSERT_DATAFLOW(NumTotal >= NumAllowed);
+  unsigned int numLeft = NumAllowed;
+  for (unsigned int i = 0; i < NumTotal; i++) {
 #pragma HLS PIPELINE II=1
-		ap_uint<DataWidth> e = in.read();
-		if (numLeft > 0) {
-			out.write(e);
-			numLeft--;
-		}
-	}
+    ap_uint<DataWidth> e = in.read();
+    if (numLeft > 0) {
+      out.write(e);
+      numLeft--;
+    }
+  }
 }
 
-template<unsigned int DataWidth,		// stream width
+template<unsigned int DataWidth,	// stream width
 		unsigned int NumAllowed, 	// number of words to pass through
-		unsigned int NumTotal // total number of words (NumTotal-NumAllowed swallowed)
+		unsigned int NumTotal       // total number of words (NumTotal-NumAllowed swallowed)
 >
 void StreamLimiter_Batch(hls::stream<ap_uint<DataWidth> > & in,
 		hls::stream<ap_uint<DataWidth> > & out, unsigned int numReps) {
-	for (unsigned int rep = 0; rep < numReps; rep++) {
-		StreamLimiter<DataWidth, NumAllowed, NumTotal>(in, out);
-	}
+  for (unsigned int rep = 0; rep < numReps; rep++) {
+    StreamLimiter<DataWidth, NumAllowed, NumTotal>(in, out);
+  }
 }
 
 template<typename InT, typename OutT>
@@ -89,60 +94,60 @@ template<unsigned int InWidth,		// width of input stream
 >
 void StreamingDataWidthConverter_Batch(hls::stream<ap_uint<InWidth> > & in,
 		hls::stream<ap_uint<OutWidth> > & out, const unsigned int numReps) {
-	if (InWidth > OutWidth) {
-		// emit multiple output words per input word read
-		CASSERT_DATAFLOW(InWidth % OutWidth == 0);
-		const unsigned int outPerIn = InWidth / OutWidth;
-		const unsigned int totalIters = NumInWords * outPerIn * numReps;
-		unsigned int o = 0;
-		ap_uint<InWidth> ei = 0;
-		for (unsigned int t = 0; t < totalIters; t++) {
+  if (InWidth > OutWidth) {
+    // emit multiple output words per input word read
+    CASSERT_DATAFLOW(InWidth % OutWidth == 0);
+    const unsigned int outPerIn = InWidth / OutWidth;
+    const unsigned int totalIters = NumInWords * outPerIn * numReps;
+    unsigned int o = 0;
+    ap_uint<InWidth> ei = 0;
+    for (unsigned int t = 0; t < totalIters; t++) {
 #pragma HLS PIPELINE II=1
-			// read new input word if current out count is zero
-			if (o == 0)
-				ei = in.read();
-			// pick output word from the rightmost position
-			ap_uint<OutWidth> eo = ei(OutWidth - 1, 0);
-			out.write(eo);
-			// shift input to get new output word for next iteration
-			ei = ei >> OutWidth;
-			// increment written output count
-			o++;
-			// wraparound indices to recreate the nested loop structure
-			if (o == outPerIn) {
-				o = 0;
-			}
-		}
-	} else if (InWidth == OutWidth) {
-		// straight-through copy
-		for (unsigned int i = 0; i < NumInWords * numReps; i++) {
+      // read new input word if current out count is zero
+      if (o == 0) {
+        ei = in.read();
+	  }
+      // pick output word from the rightmost position
+      ap_uint<OutWidth> eo = ei(OutWidth - 1, 0);
+      out.write(eo);
+      // shift input to get new output word for next iteration
+      ei = ei >> OutWidth;
+      // increment written output count
+      o++;
+      // wraparound indices to recreate the nested loop structure
+      if (o == outPerIn) {
+        o = 0;
+      }
+    }
+  } else if (InWidth == OutWidth) {
+    // straight-through copy
+    for (unsigned int i = 0; i < NumInWords * numReps; i++) {
 #pragma HLS PIPELINE II=1
-			ap_uint<InWidth> e = in.read();
-			out.write(e);
-		}
-
-	} else { // InWidth < OutWidth
-		// read multiple input words per output word emitted
-		CASSERT_DATAFLOW(OutWidth % InWidth == 0);
-		const unsigned int inPerOut = OutWidth / InWidth;
-		const unsigned int totalIters = NumInWords * numReps;
-		unsigned int i = 0;
-		ap_uint<OutWidth> eo = 0;
-		for (unsigned int t = 0; t < totalIters; t++) {
+      ap_uint<InWidth> e = in.read();
+      out.write(e);
+    }
+  } else { // InWidth < OutWidth
+    // read multiple input words per output word emitted
+    CASSERT_DATAFLOW(OutWidth % InWidth == 0);
+    const unsigned int inPerOut = OutWidth / InWidth;
+    const unsigned int totalIters = NumInWords * numReps;
+    unsigned int i = 0;
+    ap_uint<OutWidth> eo = 0;
+    for (unsigned int t = 0; t < totalIters; t++) {
 #pragma HLS PIPELINE II=1
-			// read input and shift into output buffer
-			ap_uint<InWidth> ei = in.read();
-			eo = eo >> InWidth;
-			eo(OutWidth - 1, OutWidth - InWidth) = ei;
-			// increment read input count
-			i++;
-			// wraparound logic to recreate nested loop functionality
-			if (i == inPerOut) {
-				i = 0;
-				out.write(eo);
-			}
-		}
-	}
+      // read input and shift into output buffer
+      ap_uint<InWidth> ei = in.read();
+      eo = eo >> InWidth;
+      eo(OutWidth - 1, OutWidth - InWidth) = ei;
+      // increment read input count
+      i++;
+      // wraparound logic to recreate nested loop functionality
+      if (i == inPerOut) {
+        i = 0;
+        out.write(eo);
+      }
+    }
+  }
 }
 
 template<unsigned IW, unsigned OW, unsigned N>
@@ -177,14 +182,13 @@ template<unsigned W, unsigned N>
 
 
 template<unsigned IW, unsigned OW, unsigned N>
- class WidthAdjustedOutputStream {
+class WidthAdjustedOutputStream {
   hls::stream<ap_uint<IW>>  m_buffer;
   hls::stream<ap_uint<OW>> &m_target;
   unsigned const  m_reps;
-
+  
  public:
-  WidthAdjustedOutputStream(hls::stream<ap_uint<OW> >&  target, unsigned const  reps)
-    : m_target(target), m_reps(reps) {}
+  WidthAdjustedOutputStream(hls::stream<ap_uint<OW> >&  target, unsigned const  reps) : m_target(target), m_reps(reps) {}
   ~WidthAdjustedOutputStream() {
     StreamingDataWidthConverter_Batch<IW, OW, N>(m_buffer, m_target, m_reps);
   }

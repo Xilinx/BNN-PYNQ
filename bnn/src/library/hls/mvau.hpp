@@ -28,15 +28,26 @@
  *  OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  *  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- *****************************************************************************
+ *******************************************************************************/
+
+/*******************************************************************************
+ *
  *  Authors: Giulio Gambardella <giuliog@xilinx.com>
  *           Thomas B. Preusser <thomas.preusser@utexas.edu>
  *             Marie-Curie Fellow, Xilinx Ireland, Grant Agreement No. 751339
+ *           Christoph Doehring <cdoehrin@xilinx.com>
+ *
+ *  @file mvau.hpp
+ *
+ *  This file lists a templated funtion used to implement  
+ *  Matrix-Vector-Activation Unit
  *
  *  This project has received funding from the European Union's Framework
  *  Programme for Research and Innovation Horizon 2020 (2014-2020) under
  *  the Marie Skłodowska-Curie Grant Agreement No. 751339.
- */
+ *
+ *******************************************************************************/
+
 #ifndef MVAU_HPP
 #define MVAU_HPP
 
@@ -45,42 +56,17 @@
 #include "mac.hpp"
 #include "interpret.hpp"
 
-/**
- * Generic Matrix Vector Activation Unit.
- *
- * Parameter Requirements:
- *   TI TSrc::read();
- *   TI  vi;
- *    - vi[0] .. vi[SIMD-1]  must be defined rvalues
- *
- *   void TDst::write(TO [const][&], ....)
- *   TO  vo;
- *    - vo[0] .. vo[PE-1] must be defined lvalues
- *
- *   TC {
- *     TA init(unsigned  nf, unsigned  pe);
- *     TO activate(unsigned  nf, unsigned  pe, TA const &sum);
- *   };
- *
- *   TW { 
- *     TILE weights(tile);
- *     // with TILE[PE][SIMD] yielding individual weights
- *   };
- *
- *   The result of the expression
- *      weights.weights(tile)[pe][simd] * vi[simd]
- *   can be accumulated onto the type of activation.init(nf, pe).
- */
 template<
   unsigned MatrixW, unsigned MatrixH, unsigned SIMD, unsigned PE,
   typename TSrcI = Identity, typename TDstI = Identity, typename TWeightI = Identity,
-  typename TI, typename TO, typename TW, typename TA
+  typename TI, typename TO, typename TW, typename TA, typename R
 >
 void Matrix_Vector_Activate_Batch(hls::stream<TI> &in,
 				  hls::stream<TO> &out,
 				  TW  const &weights,
 				  TA  const &activation,
-				  int const  reps) {
+				  int const  reps,
+				  R const &r) {
 
   // how many different rows each neuron will compute
   // alternatively: number of vertical matrix chunks
@@ -122,7 +108,7 @@ void Matrix_Vector_Activate_Batch(hls::stream<TI> &in,
     if(sf == 0) {
       for(unsigned  pe = 0; pe < PE; pe++) {
 #pragma HLS UNROLL
-	accu[pe] = activation.init(nf, pe);
+	    accu[pe] = activation.init(nf, pe);
       }
     }
 
@@ -132,7 +118,7 @@ void Matrix_Vector_Activate_Batch(hls::stream<TI> &in,
 #pragma HLS UNROLL
       auto const  wgt = TWeightI()(w[pe]);
       auto const  act = TSrcI()(inElem);
-      accu[pe] = mac<SIMD>(accu[pe], wgt, act);
+      accu[pe] = mac<SIMD>(accu[pe], wgt, act, r);
     }
 
     // keep track of which folded synapse/neuron we are processing
@@ -142,7 +128,7 @@ void Matrix_Vector_Activate_Batch(hls::stream<TI> &in,
       auto  outElem = TDstI().template operator()<TO>();
       for (unsigned  pe = 0; pe < PE; pe++) {
 #pragma HLS UNROLL
-	outElem[pe] = activation.activate(nf, pe, accu[pe]);
+	    outElem[pe] = activation.activate(nf, pe, accu[pe]);
       }
 
       out.write(outElem);
@@ -150,8 +136,8 @@ void Matrix_Vector_Activate_Batch(hls::stream<TI> &in,
       // next folded neuron or image
       sf = 0;
       if(++nf == NF) {
-	nf   = 0;
-	tile = 0;
+	    nf   = 0;
+	    tile = 0;
       }
     }
   }

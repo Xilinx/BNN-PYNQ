@@ -28,18 +28,28 @@
  *  OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  *  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- *****************************************************************************
- *  Authors: Thomas B. Preusser <thomas.preusser@utexas.edu>
+ *******************************************************************************/
+ 
+/*******************************************************************************
+ *
+ *  Authors: Giulio Gambardella <giuliog@xilinx.com>
+ *           Thomas B. Preusser <thomas.preusser@utexas.edu>
  *             Marie-Curie Fellow, Xilinx Ireland, Grant Agreement No. 751339
+ *           Christoph Doehring <cdoehrin@xilinx.com>
+ *
+ *  @file utils.hpp
  *
  *  This project has received funding from the European Union's Framework
  *  Programme for Research and Innovation Horizon 2020 (2014-2020) under
  *  the Marie Skłodowska-Curie Grant Agreement No. 751339.
  *
- */
+ *******************************************************************************/
+
 #ifndef UTILS_HPP
 #define UTILS_HPP
 
+#include <iostream>
+#include <fstream>
 #include <cstddef>
 
 //- Static Evaluation of ceil(log2(x)) ---------------------------------------
@@ -61,5 +71,25 @@ struct first_param<R (C::*)(A, Args...)> { typedef A  type; };
 class ap_resource_dflt {};
 class ap_resource_lut {};
 class ap_resource_dsp {};
+
+// Logging call to dump on file - not synthezisable
+template < unsigned int BitWidth >
+void logStringStream(const char *layer_name, hls::stream<ap_uint<BitWidth> > &log){
+    std::ofstream ofs(layer_name);
+    hls::stream<ap_uint<BitWidth> > tmp_stream;
+	
+  while(!log.empty()){
+    ap_uint<BitWidth> tmp = (ap_uint<BitWidth>) log.read();
+    ofs << std::hex << tmp << std::endl;
+    tmp_stream.write(tmp);
+  }
+
+  while(!tmp_stream.empty()){
+    ap_uint<BitWidth> tmp = tmp_stream.read();
+    log.write((ap_uint<BitWidth>) tmp);
+  }
+
+  ofs.close();
+}
 
 #endif

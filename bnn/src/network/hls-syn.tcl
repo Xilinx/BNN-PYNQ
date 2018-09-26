@@ -40,6 +40,7 @@
  #
 ###############################################################################
 # ignore the first 2 args, since Vivado HLS also passes -f tclname as args
+
 set config_proj_name [lindex $argv 2]
 puts "HLS project: $config_proj_name"
 set config_hwsrcdir [lindex $argv 3]
@@ -47,6 +48,8 @@ puts "HW source dir: $config_hwsrcdir"
 set directory_params [lindex $argv 4] 
 set test_image [lindex $argv 5] 
 set expected_result [lindex $argv 6] 
+set config_proj_part [lindex $argv 7] 
+
 
 set config_bnnlibdir "$::env(XILINX_BNN_ROOT)/library/hls"
 set config_bnnhostlibdir "$::env(XILINX_BNN_ROOT)/library/host"
@@ -54,7 +57,6 @@ set config_tinycnn "$::env(XILINX_BNN_ROOT)/xilinx-tiny-cnn"
 puts "BNN HLS library: $config_bnnlibdir"
 
 set config_toplevelfxn "BlackBoxJam"
-set config_proj_part "xc7z020clg400-1"
 set config_clkperiod 5
 
 # set up project

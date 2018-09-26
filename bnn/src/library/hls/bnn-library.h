@@ -29,14 +29,18 @@
  *  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  *****************************************************************************/
-/******************************************************************************
+
+/*****************************************************************************
  *
+ *  Authors: Giulio Gambardella <giuliog@xilinx.com>
+ *           Thomas B. Preusser <thomas.preusser@utexas.edu>
+ *             Marie-Curie Fellow, Xilinx Ireland, Grant Agreement No. 751339
+ *           Christoph Doehring <cdoehrin@xilinx.com>
  *
- * @file bnn-library.h
+ *  @file bnn-library.h
  *
- * Library of templated HLS functions for BNN deployment. 
- * Include this file in the network top funtion.
- * 
+ *  Library of templated HLS functions for BNN deployment. 
+ *  Include this file in the network top funtion.
  *
  *****************************************************************************/
 

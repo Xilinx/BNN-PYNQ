@@ -29,17 +29,22 @@
  *  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  *****************************************************************************/
-/******************************************************************************
+ 
+/*****************************************************************************
  *
+ *  Authors: Giulio Gambardella <giuliog@xilinx.com>
+ *           Thomas B. Preusser <thomas.preusser@utexas.edu>
+ *             Marie-Curie Fellow, Xilinx Ireland, Grant Agreement No. 751339
+ *           Christoph Doehring <cdoehrin@xilinx.com>
  *
- * @file fclayer.h
+ *  @file fclayer.h
  *
- * Library of templated HLS functions for BNN deployment. 
- * This file lists a set of convenience funtions used to implement fully 
- * connected layers
- * 
+ *  Library of templated HLS functions for BNN deployment. 
+ *  This file lists a set of convenience funtions used to implement fully 
+ *  connected layers
  *
  *****************************************************************************/
+ 
 #ifndef FCLAYER_H
 #define FCLAYER_H
 
@@ -55,25 +60,28 @@ template<
 
   typename TSrcI = Identity,      // redefine I/O interpretation as needed
   typename TDstI = Identity,
+  typename TWeightI = Identity,	  // redefine I/O interpretation as needed for weigths
 
   int InStreamW, int OutStreamW,  // safely deducible (stream width must be int though!)
-  typename TW,   typename TA
+  typename TW,   typename TA, typename R
 >
 void StreamingFCLayer_Batch(hls::stream<ap_uint<InStreamW>>  &in,
 			    hls::stream<ap_uint<OutStreamW>> &out,
 			    TW const        &weights,
 			    TA const        &activation,
-			    unsigned const   reps) {
+			    unsigned const   reps,
+				R const &r) {
 #pragma HLS INLINE
-  unsigned const  InpPerImage = MatrixW / InStreamW;
+  unsigned const  InpPerImage = MatrixW / InStreamW * TSrcI::width;
   unsigned const  OutPerImage = MatrixH / PE;
 
   WidthAdjustedInputStream <InStreamW, SIMD*TSrcI::width, InpPerImage>  wa_in (in,  reps);
   WidthAdjustedOutputStream<PE*TDstI::width,  OutStreamW, OutPerImage>  wa_out(out, reps);
 
-  Matrix_Vector_Activate_Batch<MatrixW, MatrixH, SIMD, PE, TSrcI, TDstI>
+  Matrix_Vector_Activate_Batch<MatrixW, MatrixH, SIMD, PE, TSrcI, TDstI, TWeightI>
     (static_cast<hls::stream<ap_uint<SIMD*TSrcI::width>>&>(wa_in),
      static_cast<hls::stream<ap_uint<PE*TDstI::width>>&>  (wa_out),
-     weights, activation, reps);
+     weights, activation, reps, r);
 }
+
 #endif

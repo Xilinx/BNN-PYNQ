@@ -28,14 +28,27 @@
  *  OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  *  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- *****************************************************************************
- *  Authors: Thomas B. Preußer <thomas.preusser@utexas.edu>
+ *******************************************************************************/
+
+/*******************************************************************************
+ *
+ *  Authors: Giulio Gambardella <giuliog@xilinx.com>
+ *           Thomas B. Preusser <thomas.preusser@utexas.edu>
  *             Marie-Curie Fellow, Xilinx Ireland, Grant Agreement No. 751339
+ *           Christoph Doehring <cdoehrin@xilinx.com>
+ *
+ *  @file activations.hpp
+ *
+ *  Library of templated HLS classes for BNN deployment. 
+ *  This file lists a set of classes used to implement  
+ *  threshold memory in neural network. 
  *
  *  This project has received funding from the European Union's Framework
  *  Programme for Research and Innovation Horizon 2020 (2014-2020) under
  *  the Marie Skłodowska-Curie Grant Agreement No. 751339.
- */
+ *
+ *******************************************************************************/
+
 #ifndef ACTIVATIONS_HPP
 #define ACTIVATIONS_HPP
 
@@ -84,7 +97,6 @@ public:
 template<typename TA, typename Compare = std::less<TA>>
 class ThresholdActivation : public Activation<TA, bool> {
   TA const  m_threshold;
-
 public:
   ThresholdActivation(TA const &threshold) : m_threshold(threshold) {
 #pragma HLS inline
@@ -107,16 +119,27 @@ public:
  * The default comparison returns true if the threshold value defined for
  * the indexed row is smaller than the passed accumulator value.
  */
-template<unsigned NF, unsigned PE,
-	 typename TA, typename Compare = std::less<TA>>
-class ThresholdsActivation : public Activation<TA, bool> {
+template<unsigned NF, unsigned PE, unsigned NumTH, 
+	 typename TA, typename TR, int ActVal = 0, typename Compare = std::less<TA>>
+class ThresholdsActivation {
 public:
-  TA  m_thresholds[PE][NF];
+  TA m_thresholds[PE][NF][NumTH];
+  
+public:
+  TA init(unsigned const  nf, unsigned const  pe) const {
+#pragma HLS inline
+    return  TA(0);
+  }
 
 public:
-  bool activate(unsigned const  nf, unsigned const  pe, TA const &accu) const {
+  TR activate(unsigned const  nf, unsigned const  pe,  TA const &accu) const {
 #pragma HLS inline
-    return  Compare()(m_thresholds[pe][nf], accu);
+    TR result=ActVal;
+	for(unsigned int i=0; i< NumTH; i++){
+#pragma HLS unroll
+      result+=Compare()(m_thresholds[pe][nf][i], accu);
+    }
+    return result;
   }
 };
 

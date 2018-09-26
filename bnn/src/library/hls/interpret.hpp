@@ -28,14 +28,23 @@
  *  OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  *  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- *****************************************************************************
- *  Authors: Thomas B. Preusser <thomas.preusser@utexas.edu>
+ *****************************************************************************/
+
+/*****************************************************************************
+ *
+ *  Authors: Giulio Gambardella <giuliog@xilinx.com>
+ *           Thomas B. Preusser <thomas.preusser@utexas.edu>
  *             Marie-Curie Fellow, Xilinx Ireland, Grant Agreement No. 751339
+ *           Christoph Doehring <cdoehrin@xilinx.com>
+ *
+ *  @file interpret.hpp
  *
  *  This project has received funding from the European Union's Framework
  *  Programme for Research and Innovation Horizon 2020 (2014-2020) under
  *  the Marie Skłodowska-Curie Grant Agreement No. 751339.
- */
+ *
+ *****************************************************************************/
+
 #ifndef INTERPRET_HPP
 #define INTERPRET_HPP
 
@@ -47,13 +56,12 @@
  */
 class XnorMul {
   ap_uint<1> const  m_val;
-
-public:
+ public:
   XnorMul(ap_uint<1> const  val) : m_val(val) {
 #pragma HLS inline
   }
 
-public:
+ public:
   int operator*(ap_uint<1> const &b) const {
 #pragma HLS inline
     return  m_val == b? 1 : 0;
@@ -65,24 +73,38 @@ inline int operator*(ap_uint<1> const &a, XnorMul const &b) {
 }
 
 class Binary {
+ public:
   ap_uint<1> const  m_val;
-
-public:
   Binary(ap_uint<1> const  val) : m_val(val) {
 #pragma HLS inline
   }
 
-public:
+ public:
+  operator ap_int<2> () const {
+    return ap_int<2>(m_val? 1 : -1);
+  }
   template<typename T>
-  auto operator*(T const &b) const -> decltype(-b) {
+  auto operator*(T const &b) const -> decltype(ap_int<2>(1)*b) {
 #pragma HLS inline
     return  m_val? static_cast<decltype(-b)>(b) : -b;
   }
+  friend std::ostream& operator<<(std::ostream&, Binary const&);
 };
+
 template<typename T>
 inline int operator*(T const &a, Binary const &b) {
 #pragma HLS inline
   return  b*a;
+}
+
+inline int operator*(Binary const &a, Binary const &b) {
+#pragma HLS inline
+  return (ap_int<2>) b* (ap_int<2>)a;
+}
+
+inline std::ostream& operator<<(std::ostream &out, Binary const &b) {
+  out << (b.m_val? "1" : "-1");
+  return  out;
 }
 
 struct Identity {
@@ -93,6 +115,7 @@ struct Identity {
 #pragma HLS inline
     return  v;
   }
+  
   template<typename T>
   T operator()() const {
 #pragma HLS inline
@@ -102,20 +125,19 @@ struct Identity {
 
 template<typename T>
 class Recast {
-public:
+ public:
   static unsigned const  width = 1;
 
-private:
+ private:
   template<typename TV>
   class Container {
     TV  m_val;
-
-  public:
+   public:
     Container(TV const &val) : m_val(val) {
 #pragma HLS inline
     }
 
-  public:
+   public:
     T operator[](unsigned const  idx) const {
 #pragma HLS inline
       return  T(m_val[idx]);
@@ -128,9 +150,9 @@ private:
 #pragma HLS inline
       return  m_val;
     }
-  };
+   };
 
-public:
+ public:
   template<typename TV>
   Container<TV> operator()(TV const &val) const {
 #pragma HLS inline
@@ -143,17 +165,31 @@ public:
   }
 };
 
+template<typename T>
+struct Caster {
+	template<int M>
+	static T cast(ap_uint<M> const &arg) { return  T(arg); }
+};
+
+template<int W, int I, ap_q_mode Q, ap_o_mode O, int N>
+struct Caster<ap_fixed<W, I, Q, O, N>> {
+  template<int M>
+  static ap_fixed<W, I, Q, O, N> cast(ap_uint<M> const &arg) {
+    return *reinterpret_cast<ap_fixed<W, I, Q, O, N> const*>(&arg);
+  }
+}; 
+
 template<typename T, unsigned STRIDE=T::width>
 class Slice {
-public:
+ public:
   static unsigned const  width = STRIDE;
 
-private:
+ private:
   template<typename TV>
   class Container {
     TV  m_val;
 
-  public:
+   public:
     Container() {
 #pragma HLS inline
     }
@@ -161,11 +197,11 @@ private:
 #pragma HLS inline
     }
 
-  public:
+   public:
     T operator[](unsigned const  idx) const {
-#pragma HLS inline
-      ap_uint<STRIDE> const  r = m_val((idx+1)*STRIDE-1, idx*STRIDE);
-      return  *reinterpret_cast<T const*>(&r);
+#pragma HLS inline 
+      ap_uint<STRIDE> const  r = m_val((idx+1)*STRIDE-1, idx*STRIDE); 
+      return  Caster<T>::cast(r);
     }
     auto operator[](unsigned const  idx) -> decltype(m_val(STRIDE, 0)) {
 #pragma HLS inline
@@ -177,7 +213,7 @@ private:
     }
   };
 
-public:
+ public:
   template<typename TV>
   Container<TV> operator()(TV const &val) const {
 #pragma HLS inline
@@ -189,4 +225,5 @@ public:
     return  Container<TV>();
   }
 };
+
 #endif
