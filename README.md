@@ -1,6 +1,6 @@
 # BNN-PYNQ PIP INSTALL Package
 
-This repo contains the pip install package for Quantized Neural Network (BNN) on PYNQ. 
+This repo contains the pip install package for Quantized Neural Network (QNN) on PYNQ. 
 Two different network topologies are here included, namely CNV and LFC as described in the <a href="https://arxiv.org/abs/1612.07119" target="_blank"> FINN Paper </a>. 
 Now, there are multiple implementations available supporting different precision for weights and activation:
 
