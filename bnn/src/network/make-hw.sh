@@ -42,7 +42,7 @@
  #
 ###############################################################################
 
-NETWORKS=$(ls -d */ | cut -f1 -d'/' | tr "\n" " ")
+NETWORKS=$(ls -d *W*A*/ | cut -f1 -d'/' | tr "\n" " ")
 
 if [ "$#" -ne 3 ]; then
   echo "Usage: $0 <network> <platform> <mode>" >&2

@@ -41,7 +41,7 @@
  #
 ###############################################################################
 
-NETWORKS=$(ls -d cnv*/ lfc*/ | cut -f1 -d'/' | tr "\n" " ")
+NETWORKS=$(ls -d *W*A*/ | cut -f1 -d'/' | tr "\n" " ")
 
 if [ "$#" -ne 2 ]; then
   echo "Usage: $0 <network> <runtime> where ">&2
