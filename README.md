@@ -8,7 +8,7 @@ Now, there are multiple implementations available supporting different precision
 - 1 bit weights and 2 bit activation (W1A2) for CNV and LFC
 - 2 bit weights and 2 bit activation (W2A2) for CNV
 
-We support 3 boards for hardware acceleration which are Pynq-Z1, Pynq-Z2 and Ultra96.
+We support 3 boards for hardware acceleration which are Pynq-Z1, Pynq-Z2 and Ultra96 (with PYNQ image).
 
 ## Citation
 If you find BNN-PYNQ useful, please cite the <a href="https://arxiv.org/abs/1612.07119" target="_blank">FINN paper</a>:
