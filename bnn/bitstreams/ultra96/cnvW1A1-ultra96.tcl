@@ -212,8 +212,8 @@ proc create_root_design { parentCell } {
    CONFIG.NUM_MI {1} \
  ] $ps8_0_axi_periph
 
-  # Create instance: rst_ps8_0_249M, and set properties
-  set rst_ps8_0_249M [ create_bd_cell -type ip -vlnv xilinx.com:ip:proc_sys_reset:5.0 rst_ps8_0_249M ]
+  # Create instance: rst_ps8_0_299M, and set properties
+  set rst_ps8_0_299M [ create_bd_cell -type ip -vlnv xilinx.com:ip:proc_sys_reset:5.0 rst_ps8_0_299M ]
 
   # Create instance: zynq_ultra_ps_e_0, and set properties
   set zynq_ultra_ps_e_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:zynq_ultra_ps_e:3.2 zynq_ultra_ps_e_0 ]
@@ -486,9 +486,9 @@ proc create_root_design { parentCell } {
    CONFIG.PSU__CRL_APB__PL1_REF_CTRL__DIVISOR1 {4} \
    CONFIG.PSU__CRL_APB__PL1_REF_CTRL__FREQMHZ {100} \
    CONFIG.PSU__CRL_APB__PL1_REF_CTRL__SRCSEL {IOPLL} \
-   CONFIG.PSU__CRL_APB__PL2_REF_CTRL__ACT_FREQMHZ {249.999750} \
-   CONFIG.PSU__CRL_APB__PL2_REF_CTRL__DIVISOR0 {3} \
-   CONFIG.PSU__CRL_APB__PL2_REF_CTRL__DIVISOR1 {2} \
+   CONFIG.PSU__CRL_APB__PL2_REF_CTRL__ACT_FREQMHZ {299.999700} \
+   CONFIG.PSU__CRL_APB__PL2_REF_CTRL__DIVISOR0 {5} \
+   CONFIG.PSU__CRL_APB__PL2_REF_CTRL__DIVISOR1 {1} \
    CONFIG.PSU__CRL_APB__PL2_REF_CTRL__FREQMHZ {100} \
    CONFIG.PSU__CRL_APB__PL2_REF_CTRL__SRCSEL {IOPLL} \
    CONFIG.PSU__CRL_APB__PL3_REF_CTRL__ACT_FREQMHZ {374.999625} \
@@ -761,12 +761,12 @@ proc create_root_design { parentCell } {
 
   # Create port connections
   connect_bd_net -net emio_uart0_ctsn_1 [get_bd_ports BT_ctsn] [get_bd_pins zynq_ultra_ps_e_0/emio_uart0_ctsn]
-  connect_bd_net -net rst_ps8_0_249M_interconnect_aresetn [get_bd_pins ps8_0_axi_periph/ARESETN] [get_bd_pins rst_ps8_0_249M/interconnect_aresetn]
-  connect_bd_net -net rst_ps8_0_249M_peripheral_aresetn [get_bd_pins BlackBoxJam_0/ap_rst_n] [get_bd_pins axi_smc/aresetn] [get_bd_pins ps8_0_axi_periph/M00_ARESETN] [get_bd_pins ps8_0_axi_periph/S00_ARESETN] [get_bd_pins rst_ps8_0_249M/peripheral_aresetn]
+  connect_bd_net -net rst_ps8_0_299M_interconnect_aresetn [get_bd_pins ps8_0_axi_periph/ARESETN] [get_bd_pins rst_ps8_0_299M/interconnect_aresetn]
+  connect_bd_net -net rst_ps8_0_299M_peripheral_aresetn [get_bd_pins BlackBoxJam_0/ap_rst_n] [get_bd_pins axi_smc/aresetn] [get_bd_pins ps8_0_axi_periph/M00_ARESETN] [get_bd_pins ps8_0_axi_periph/S00_ARESETN] [get_bd_pins rst_ps8_0_299M/peripheral_aresetn]
   connect_bd_net -net zynq_ultra_ps_e_0_emio_uart0_rtsn [get_bd_ports BT_rtsn] [get_bd_pins zynq_ultra_ps_e_0/emio_uart0_rtsn]
   connect_bd_net -net zynq_ultra_ps_e_0_pl_clk0 [get_bd_pins zynq_ultra_ps_e_0/pl_clk0]
-  connect_bd_net -net zynq_ultra_ps_e_0_pl_clk2 [get_bd_pins BlackBoxJam_0/ap_clk] [get_bd_pins axi_smc/aclk] [get_bd_pins ps8_0_axi_periph/ACLK] [get_bd_pins ps8_0_axi_periph/M00_ACLK] [get_bd_pins ps8_0_axi_periph/S00_ACLK] [get_bd_pins rst_ps8_0_249M/slowest_sync_clk] [get_bd_pins zynq_ultra_ps_e_0/maxihpm0_fpd_aclk] [get_bd_pins zynq_ultra_ps_e_0/pl_clk2] [get_bd_pins zynq_ultra_ps_e_0/saxihp0_fpd_aclk]
-  connect_bd_net -net zynq_ultra_ps_e_0_pl_resetn0 [get_bd_pins rst_ps8_0_249M/ext_reset_in] [get_bd_pins zynq_ultra_ps_e_0/pl_resetn0]
+  connect_bd_net -net zynq_ultra_ps_e_0_pl_clk2 [get_bd_pins BlackBoxJam_0/ap_clk] [get_bd_pins axi_smc/aclk] [get_bd_pins ps8_0_axi_periph/ACLK] [get_bd_pins ps8_0_axi_periph/M00_ACLK] [get_bd_pins ps8_0_axi_periph/S00_ACLK] [get_bd_pins rst_ps8_0_299M/slowest_sync_clk] [get_bd_pins zynq_ultra_ps_e_0/maxihpm0_fpd_aclk] [get_bd_pins zynq_ultra_ps_e_0/pl_clk2] [get_bd_pins zynq_ultra_ps_e_0/saxihp0_fpd_aclk]
+  connect_bd_net -net zynq_ultra_ps_e_0_pl_resetn0 [get_bd_pins rst_ps8_0_299M/ext_reset_in] [get_bd_pins zynq_ultra_ps_e_0/pl_resetn0]
 
   # Create address segments
   create_bd_addr_seg -range 0x80000000 -offset 0x00000000 [get_bd_addr_spaces BlackBoxJam_0/Data_m_axi_hostmem] [get_bd_addr_segs zynq_ultra_ps_e_0/SAXIGP2/HP0_DDR_LOW] SEG_zynq_ultra_ps_e_0_HP0_DDR_LOW
