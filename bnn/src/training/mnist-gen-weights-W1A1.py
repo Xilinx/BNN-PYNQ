@@ -39,7 +39,7 @@ if __name__ == "__main__":
     targetDirBin = bnnRoot + "/binparam-lfcW1A1-pynq"
     targetDirHLS = bnnRoot + "/binparam-lfcW1A1-pynq/hw"
 
-	simdCounts = [64, 32, 64,  8]
+    simdCounts = [64, 32, 64,  8]
     peCounts   = [32, 64, 32, 16]
 
     WeightsPrecisions_fractional    = [0, 0, 0, 0]

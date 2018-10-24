@@ -1,39 +1,5 @@
-/******************************************************************************
- *  Copyright (c) 2016, Xilinx, Inc.
- *  All rights reserved.
- *
- *  Redistribution and use in source and binary forms, with or without
- *  modification, are permitted provided that the following conditions are met:
- *
- *  1.  Redistributions of source code must retain the above copyright notice,
- *     this list of conditions and the following disclaimer.
- *
- *  2.  Redistributions in binary form must reproduce the above copyright
- *      notice, this list of conditions and the following disclaimer in the
- *      documentation and/or other materials provided with the distribution.
- *
- *  3.  Neither the name of the copyright holder nor the names of its
- *      contributors may be used to endorse or promote products derived from
- *      this software without specific prior written permission.
- *
- *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- *  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
- *  THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
- *  PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
- *  CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
- *  EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
- *  PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
- *  OR BUSINESS INTERRUPTION). HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
- *  WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
- *  OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
- *  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- *****************************************************************************/
 /**
- * @file config.h
- *
  * Finnthesizer Config-File Generation
- * Defines for SIMD and PE network configuration of CNV-W1A2 overlay
  *
  **/
 
@@ -46,7 +12,8 @@
  *      OFM  =    30  OFM_CH =    64
  *     SIMD  =     3    PE   =    16
  *     WMEM  =    36   TMEM  =     4
- **/
+ *     #Ops  = 3110400   Ext Latency  = 32400
+**/
 
 #define L0_K 3
 #define L0_IFM_CH 3
@@ -68,7 +35,8 @@
  *      OFM  =    28  OFM_CH =    64
  *     SIMD  =    32    PE   =    32
  *     WMEM  =    36   TMEM  =     2
- **/
+ *     #Ops  = 57802752   Ext Latency  = 28224
+**/
 
 #define L1_K 3
 #define L1_IFM_CH 64
@@ -90,7 +58,8 @@
  *      OFM  =    12  OFM_CH =   128
  *     SIMD  =    32    PE   =    16
  *     WMEM  =   144   TMEM  =     8
- **/
+ *     #Ops  = 21233664   Ext Latency  = 20736
+**/
 
 #define L2_K 3
 #define L2_IFM_CH 64
@@ -112,7 +81,8 @@
  *      OFM  =    10  OFM_CH =   128
  *     SIMD  =    32    PE   =    16
  *     WMEM  =   288   TMEM  =     8
- **/
+ *     #Ops  = 29491200   Ext Latency  = 28800
+**/
 
 #define L3_K 3
 #define L3_IFM_CH 128
@@ -134,7 +104,8 @@
  *      OFM  =     3  OFM_CH =   256
  *     SIMD  =    32    PE   =     4
  *     WMEM  =  2304   TMEM  =    64
- **/
+ *     #Ops  = 5308416   Ext Latency  = 20736
+**/
 
 #define L4_K 3
 #define L4_IFM_CH 128
@@ -156,7 +127,8 @@
  *      OFM  =     1  OFM_CH =   256
  *     SIMD  =    32    PE   =     1
  *     WMEM  = 18432   TMEM  =   256
- **/
+ *     #Ops  = 1179648   Ext Latency  = 18432
+**/
 
 #define L5_K 3
 #define L5_IFM_CH 256
@@ -177,7 +149,8 @@
  *     MatW =   256 MatH =   512
  *     SIMD =     4  PE  =     1
  *     WMEM = 32768 TMEM =   512
- **/
+ *     #Ops  = 262144   Ext Latency  = 32768
+**/
 
 #define L6_SIMD 4
 #define L6_PE 1
@@ -195,7 +168,8 @@
  *     MatW =   512 MatH =   512
  *     SIMD =     8  PE  =     1
  *     WMEM = 32768 TMEM =   512
- **/
+ *     #Ops  = 524288   Ext Latency  = 32768
+**/
 
 #define L7_SIMD 8
 #define L7_PE 1
@@ -213,7 +187,8 @@
  *     MatW =   512 MatH =    64
  *     SIMD =     1  PE  =     4
  *     WMEM =  8192 TMEM =    16
- **/
+ *     #Ops  = 65536   Ext Latency  =  8192
+**/
 
 #define L8_SIMD 1
 #define L8_PE 4

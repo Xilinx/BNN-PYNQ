@@ -98,9 +98,7 @@ def convertFCNetwork(npzFile, targetDirBin, targetDirHLS, simdCounts, peCounts, 
     # create parameter files for tiny-cnn
 
   config+="#endif //__LAYER_CONFIG_H_\n"
-
-  print "Config header file:\n\n"
-  print config  
+  
   configFile = open(targetDirHLS+"/config.h", "w")
   configFile.write(config)
   configFile.close()
@@ -615,11 +613,11 @@ class BNNProcElemMem:
               accuWidth = self.numThresBits
               if mem[memInd][numThresh] > (2**(accuWidth-1))-1:
                  saturate = (2**(accuWidth-1))-1
-                 print "WARNING: Threshold is out of datatype (int" + str(accuWidth) + "). Thresh is " + str(mem[memInd][numThresh]) + ", saturated to " + str(saturate)
+                 #print "WARNING: Threshold is out of datatype (int" + str(accuWidth) + "). Thresh is " + str(mem[memInd][numThresh]) + ", saturated to " + str(saturate)
                  mem[memInd][numThresh] = saturate
               elif mem[memInd][numThresh] < -(2**(accuWidth-1)):
                  saturate = -(2**(accuWidth-1))
-                 print "WARNING: Threshold is out of datatype (int" + str(accuWidth) + "). Thresh is " + str(mem[memInd][numThresh]) + ", saturated to " + str(saturate)
+                 #print "WARNING: Threshold is out of datatype (int" + str(accuWidth) + "). Thresh is " + str(mem[memInd][numThresh]) + ", saturated to " + str(saturate)
                  mem[memInd][numThresh] = saturate
               #read as int
               threshBin = bitstring.Bits(int=mem[memInd][numThresh], length=lenExtMemWord).unpack("bin:"+str(lenExtMemWord))[0]                           
