@@ -109,7 +109,9 @@ def convertFCNetwork(npzFile, targetDirBin, targetDirHLS, simdCounts, peCounts, 
 def printConvDefines(prefix, kernelDim, ifm_ch, ifm_dim, ofm_ch, ofm_dim, simd, pe, wmem, tmem, wpi, api, wpf, apf):
   #network topology
   config = ""
-  config += "/**\n * Convolutional Layer %s:\n *      IFM  = %5d  IFM_CH = %5d\n *      OFM  = %5d  OFM_CH = %5d\n *     SIMD  = %5d    PE   = %5d\n *     WMEM  = %5d   TMEM  = %5d\n **/\n" % (prefix, ifm_dim, ifm_ch, ofm_dim, ofm_ch, simd, pe, wmem, tmem)       
+  numb_ops = 2*ifm_ch*ofm_ch*kernelDim*kernelDim*ofm_dim*ofm_dim # 2* because of MAC
+  est_latency = numb_ops/(2*simd*pe)
+  config += "/**\n * Convolutional Layer %s:\n *      IFM  = %5d  IFM_CH = %5d\n *      OFM  = %5d  OFM_CH = %5d\n *     SIMD  = %5d    PE   = %5d\n *     WMEM  = %5d   TMEM  = %5d\n *     #Ops  = %5d   Ext Latency  = %5d\n**/\n" % (prefix, ifm_dim, ifm_ch, ofm_dim, ofm_ch, simd, pe, wmem, tmem, numb_ops, est_latency)       
   config += "\n" + "#define %s_K %d"       % (prefix, kernelDim)
   config += "\n" + "#define %s_IFM_CH %d"  % (prefix, ifm_ch)
   config += "\n" + "#define %s_IFM_DIM %d" % (prefix, ifm_dim)
@@ -130,7 +132,9 @@ def printConvDefines(prefix, kernelDim, ifm_ch, ifm_dim, ofm_ch, ofm_dim, simd, 
 # return HW config string as C #define's for a FC layer
 def printFCDefines(prefix, simd, pe, wmem, tmem, mw, mh, wpi, api, wpf, apf):
   config = ""
-  config += "/**\n * Fully-Connected Layer %s:\n *     MatW = %5d MatH = %5d\n *     SIMD = %5d  PE  = %5d\n *     WMEM = %5d TMEM = %5d\n **/\n" % (prefix, mw, mh, simd, pe, wmem, tmem)       
+  numb_ops = 2*mw*mh # 2* because of MAC
+  est_latency = numb_ops/(2*simd*pe)
+  config += "/**\n * Fully-Connected Layer %s:\n *     MatW = %5d MatH = %5d\n *     SIMD = %5d  PE  = %5d\n *     WMEM = %5d TMEM = %5d\n *     #Ops  = %5d   Ext Latency  = %5d\n**/\n" % (prefix, mw, mh, simd, pe, wmem, tmem, numb_ops, est_latency)       
   config += "\n" + "#define %s_SIMD %d" % (prefix, simd)
   config += "\n" + "#define %s_PE %d" % (prefix, pe)
   config += "\n" + "#define %s_WMEM %d" % (prefix, wmem)
