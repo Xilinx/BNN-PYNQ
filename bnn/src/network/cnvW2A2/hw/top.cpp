@@ -208,9 +208,9 @@ void BlackBoxJam(ap_uint<64> *in, ap_uint<64> *out, bool doInit,
 #pragma HLS INTERFACE s_axilite port=val bundle=control
 #pragma HLS INTERFACE s_axilite port=numReps bundle=control
 // signals to be mapped to the AXI master port (hostmem)
-#pragma HLS INTERFACE m_axi offset=slave port=in bundle=hostmem depth=256
+#pragma HLS INTERFACE m_axi offset=slave port=in bundle=hostmem depth=512
 #pragma HLS INTERFACE s_axilite port=in bundle=control
-#pragma HLS INTERFACE m_axi offset=slave port=out bundle=hostmem depth=256
+#pragma HLS INTERFACE m_axi offset=slave port=out bundle=hostmem depth=16
 #pragma HLS INTERFACE s_axilite port=out bundle=control
 
 // partition PE arrays
