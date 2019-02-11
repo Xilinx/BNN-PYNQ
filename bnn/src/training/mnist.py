@@ -36,6 +36,7 @@ from __future__ import print_function
 import sys
 import os
 import time
+from argparse import ArgumentParser
 
 import numpy as np
 np.random.seed(1234)  # for reproducibility
@@ -51,7 +52,7 @@ import lasagne
 import cPickle as pickle
 import gzip
 
-import binary_net
+import quantized_net
 import lfc
 
 from pylearn2.datasets.mnist import MNIST
@@ -60,8 +61,23 @@ from pylearn2.utils import serial
 from collections import OrderedDict
 
 if __name__ == "__main__":
-    
+    # Parse some command line options
+    parser = ArgumentParser(
+        description="Train the LFC network on the MNIST dataset")
+    parser.add_argument('-ab', '--activation-bits', type=int, default=1, choices=[1, 2],
+        help="Quantized the activations to the specified number of bits, default: %(default)s")
+    parser.add_argument('-wb', '--weight-bits', type=int, default=1, choices=[1],
+        help="Quantized the weights to the specified number of bits, default: %(default)s")
+    args = parser.parse_args()
+
     learning_parameters = OrderedDict()
+
+    # Quantization parameters
+    learning_parameters.activation_bits = args.activation_bits
+    print("activation_bits = "+str(learning_parameters.activation_bits))
+    learning_parameters.weight_bits = args.weight_bits
+    print("weight_bits = "+str(learning_parameters.weight_bits))
+
     # BN parameters
     batch_size = 100
     print("batch_size = "+str(batch_size))
@@ -95,7 +111,7 @@ if __name__ == "__main__":
     print("LR_decay = "+str(LR_decay))
     # BTW, LR decay might good for the BN moving average...
     
-    save_path = "mnist_parameters.npz"
+    save_path = "mnist-%dw-%da.npz" % (learning_parameters.weight_bits, learning_parameters.activation_bits)
     print("save_path = "+str(save_path))
     
     shuffle_parts = 1
@@ -149,13 +165,13 @@ if __name__ == "__main__":
     loss = T.mean(T.sqr(T.maximum(0.,1.-target*train_output)))
     
     # W updates
-    W = lasagne.layers.get_all_params(mlp, binary=True)
-    W_grads = binary_net.compute_grads(loss,mlp)
+    W = lasagne.layers.get_all_params(mlp, quantized=True)
+    W_grads = quantized_net.compute_grads(loss,mlp)
     updates = lasagne.updates.adam(loss_or_grads=W_grads, params=W, learning_rate=LR)
-    updates = binary_net.clipping_scaling(updates,mlp)
+    updates = quantized_net.clipping_scaling(updates,mlp)
     
     # other parameters updates
-    params = lasagne.layers.get_all_params(mlp, trainable=True, binary=False)
+    params = lasagne.layers.get_all_params(mlp, trainable=True, quantized=False)
     updates = OrderedDict(updates.items() + lasagne.updates.adam(loss_or_grads=loss, params=params, learning_rate=LR).items())
         
     test_output = lasagne.layers.get_output(mlp, deterministic=True)
@@ -171,7 +187,7 @@ if __name__ == "__main__":
 
     print('Training...')
     
-    binary_net.train(
+    quantized_net.train(
             train_fn,val_fn,
             mlp,
             batch_size,

@@ -32,17 +32,26 @@
 #SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import lasagne
-import binary_net
+import quantization as q
+import quantized_net as qn
 
 def genCnv(input, num_outputs, learning_parameters):
     # A function to generate the cnv network topology which matches the overlay for the Pynq board.
     # WARNING: If you change this file, it's likely the resultant weights will not fit on the Pynq overlay.
     if num_outputs < 1 or num_outputs > 64:
         error("num_outputs should be in the range of 1 to 64.")
-    stochastic = False
-    binary = True
-    H = 1
-    activation = binary_net.binary_tanh_unit
+    if learning_parameters.activation_bits == 1:
+        act_quant = q.QuantizationBinary()
+    else:
+        act_quant = q.QuantizationFixed(learning_parameters.activation_bits,
+            learning_parameters.activation_bits - 2)
+    activation = qn.FixedHardTanH(act_quant)
+    if learning_parameters.weight_bits == 1:
+        weight_quant = q.QuantizationBinary()
+    else:
+        weight_quant = q.QuantizationFixed(learning_parameters.weight_bits,
+            learning_parameters.weight_bits - 2)
+    input_quant = q.QuantizationFixed(8, 7, narrow_range=False)
     W_LR_scale = learning_parameters.W_LR_scale
     epsilon = learning_parameters.epsilon
     alpha = learning_parameters.alpha
@@ -51,12 +60,16 @@ def genCnv(input, num_outputs, learning_parameters):
             shape=(None, 3, 32, 32),
             input_var=input)
     
+    # Quantize the inputs.
+    # Precondition: inputs have already been scaled to [-1, 1]
+    cnn = lasagne.layers.NonlinearityLayer(
+            cnn,
+            nonlinearity=qn.FixedHardTanH(input_quant)) 
+            
     # 64C3-64C3-P2             
-    cnn = binary_net.Conv2DLayer(
+    cnn = qn.Conv2DLayer(
             cnn, 
-            binary=binary,
-            stochastic=stochastic,
-            H=H,
+            quantization=weight_quant,
             W_LR_scale=W_LR_scale,
             num_filters=64, 
             filter_size=(3, 3),
@@ -73,11 +86,9 @@ def genCnv(input, num_outputs, learning_parameters):
             cnn,
             nonlinearity=activation) 
             
-    cnn = binary_net.Conv2DLayer(
+    cnn = qn.Conv2DLayer(
             cnn, 
-            binary=binary,
-            stochastic=stochastic,
-            H=H,
+            quantization=weight_quant,
             W_LR_scale=W_LR_scale,
             num_filters=64, 
             filter_size=(3, 3),
@@ -85,7 +96,7 @@ def genCnv(input, num_outputs, learning_parameters):
             flip_filters=False,
             nonlinearity=lasagne.nonlinearities.identity)
     
-    cnn = lasagne.layers.MaxPool2DLayer(cnn, pool_size=(2, 2))
+    cnn = lasagne.layers.MaxPool2DLayer(cnn, pool_size=(2, 2), ignore_border=False)
     
     cnn = lasagne.layers.BatchNormLayer(
             cnn,
@@ -97,11 +108,9 @@ def genCnv(input, num_outputs, learning_parameters):
             nonlinearity=activation) 
             
     # 256C3-256C3-P2             
-    cnn = binary_net.Conv2DLayer(
+    cnn = qn.Conv2DLayer(
             cnn, 
-            binary=binary,
-            stochastic=stochastic,
-            H=H,
+            quantization=weight_quant,
             W_LR_scale=W_LR_scale,
             num_filters=128, 
             filter_size=(3, 3),
@@ -118,11 +127,9 @@ def genCnv(input, num_outputs, learning_parameters):
             cnn,
             nonlinearity=activation) 
             
-    cnn = binary_net.Conv2DLayer(
+    cnn = qn.Conv2DLayer(
             cnn, 
-            binary=binary,
-            stochastic=stochastic,
-            H=H,
+            quantization=weight_quant,
             W_LR_scale=W_LR_scale,
             num_filters=128, 
             filter_size=(3, 3),
@@ -130,7 +137,7 @@ def genCnv(input, num_outputs, learning_parameters):
             flip_filters=False,
             nonlinearity=lasagne.nonlinearities.identity)
     
-    cnn = lasagne.layers.MaxPool2DLayer(cnn, pool_size=(2, 2))
+    cnn = lasagne.layers.MaxPool2DLayer(cnn, pool_size=(2, 2), ignore_border=False)
     
     cnn = lasagne.layers.BatchNormLayer(
             cnn,
@@ -142,11 +149,9 @@ def genCnv(input, num_outputs, learning_parameters):
             nonlinearity=activation) 
             
     # 256C3-256C3              
-    cnn = binary_net.Conv2DLayer(
+    cnn = qn.Conv2DLayer(
             cnn, 
-            binary=binary,
-            stochastic=stochastic,
-            H=H,
+            quantization=weight_quant,
             W_LR_scale=W_LR_scale,
             num_filters=256, 
             filter_size=(3, 3),
@@ -163,11 +168,9 @@ def genCnv(input, num_outputs, learning_parameters):
             cnn,
             nonlinearity=activation) 
                   
-    cnn = binary_net.Conv2DLayer(
+    cnn = qn.Conv2DLayer(
             cnn, 
-            binary=binary,
-            stochastic=stochastic,
-            H=H,
+            quantization=weight_quant,
             W_LR_scale=W_LR_scale,
             num_filters=256, 
             filter_size=(3, 3),
@@ -187,11 +190,9 @@ def genCnv(input, num_outputs, learning_parameters):
     # print(cnn.output_shape)
     
     # 1024FP-1024FP-10FP            
-    cnn = binary_net.DenseLayer(
+    cnn = qn.DenseLayer(
                 cnn, 
-                binary=binary,
-                stochastic=stochastic,
-                H=H,
+                quantization=weight_quant,
                 W_LR_scale=W_LR_scale,
                 nonlinearity=lasagne.nonlinearities.identity,
                 num_units=512)      
@@ -205,11 +206,9 @@ def genCnv(input, num_outputs, learning_parameters):
             cnn,
             nonlinearity=activation) 
             
-    cnn = binary_net.DenseLayer(
+    cnn = qn.DenseLayer(
                 cnn, 
-                binary=binary,
-                stochastic=stochastic,
-                H=H,
+                quantization=weight_quant,
                 W_LR_scale=W_LR_scale,
                 nonlinearity=lasagne.nonlinearities.identity,
                 num_units=512)      
@@ -223,18 +222,18 @@ def genCnv(input, num_outputs, learning_parameters):
             cnn,
             nonlinearity=activation) 
     
-    cnn = binary_net.DenseLayer(
+    cnn = qn.DenseLayer(
                 cnn, 
-                binary=binary,
-                stochastic=stochastic,
-                H=H,
+                quantization=weight_quant,
                 W_LR_scale=W_LR_scale,
                 nonlinearity=lasagne.nonlinearities.identity,
-                num_units=num_outputs)
+                num_units=num_outputs,
+                b=None)
                   
     cnn = lasagne.layers.BatchNormLayer(
             cnn,
             epsilon=epsilon, 
-            alpha=alpha)
+            alpha=alpha,
+            axes=(0,1))
     return cnn
 

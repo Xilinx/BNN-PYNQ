@@ -43,8 +43,8 @@ import numpy as np
 np.random.seed(1234) # for reproducibility?
 
 # specifying the gpu to use
-# import theano.sandbox.cuda
-# theano.sandbox.cuda.use('gpu1') 
+#import theano.sandbox.cuda
+#theano.sandbox.cuda.use('gpu1') 
 import theano
 import theano.tensor as T
 
@@ -56,7 +56,7 @@ from glob import glob
 
 from PIL import Image
 
-import binary_net
+import quantized_net
 import cnv
 from readTrafficSigns import readTrafficSigns
 import augmentors
@@ -133,20 +133,32 @@ def get_junk_class(image_path, width, label, normalise=True):
     return X, Y
 
 if __name__ == "__main__":
-    
-    usage = "Trains a VGG-like network on the GTRSB dataset."
-    p = ArgumentParser(description=usage)
-    p.add_argument(
+    # Parse some command line options
+    parser = ArgumentParser(
+        description="Train the CNV network on the GTSRB dataset")
+    parser.add_argument('-ab', '--activation-bits', type=int, default=1, choices=[1],
+        help="Quantized the activations to the specified number of bits, default: %(default)s")
+    parser.add_argument('-wb', '--weight-bits', type=int, default=1, choices=[1],
+        help="Quantized the weights to the specified number of bits, default: %(default)s")
+    parser.add_argument(
         '-f', '--final', action='store_true', default=False,
         help="Use the 'Final' training and test sets (default: %(default)s)")
-    p.add_argument(
+    parser.add_argument(
         '-ip', '--image-path', type=str, required=True,
         help="Path to the root directory of GTRSB images (e.g., ./GTRSB")
-    args = p.parse_args()
+    args = parser.parse_args()
+
     image_path = args.image_path
     final = args.final
 
     learning_parameters = OrderedDict()
+
+    # Quantization parameters
+    learning_parameters.activation_bits = args.activation_bits
+    print("activation_bits = "+str(learning_parameters.activation_bits))
+    learning_parameters.weight_bits = args.weight_bits
+    print("weight_bits = "+str(learning_parameters.weight_bits))
+
     # BN parameters
     batch_size = 50
     print("batch_size = "+str(batch_size))
@@ -161,7 +173,7 @@ if __name__ == "__main__":
     print("W_LR_scale = "+str(learning_parameters.W_LR_scale))
     
     # Training parameters
-    num_epochs = 500
+    num_epochs = 1000
     print("num_epochs = "+str(num_epochs))
     
     # Decaying LR 
@@ -173,7 +185,7 @@ if __name__ == "__main__":
     print("LR_decay = "+str(LR_decay))
     # BTW, LR decay might good for the BN moving average...
     
-    save_path = "gtsrb_parameters.npz"
+    save_path = "gtsrb-%dw-%da.npz" % (learning_parameters.weight_bits, learning_parameters.activation_bits)
     print("save_path = "+str(save_path))
     
     shuffle_parts = 1
@@ -315,13 +327,13 @@ if __name__ == "__main__":
     loss = T.mean(T.sqr(T.maximum(0.,1.-target*train_output)))
     
     # W updates
-    W = lasagne.layers.get_all_params(cnn, binary=True)
-    W_grads = binary_net.compute_grads(loss,cnn)
+    W = lasagne.layers.get_all_params(cnn, quantized=True)
+    W_grads = quantized_net.compute_grads(loss,cnn)
     updates = lasagne.updates.adam(loss_or_grads=W_grads, params=W, learning_rate=LR)
-    updates = binary_net.clipping_scaling(updates,cnn)
+    updates = quantized_net.clipping_scaling(updates,cnn)
     
     # other parameters updates
-    params = lasagne.layers.get_all_params(cnn, trainable=True, binary=False)
+    params = lasagne.layers.get_all_params(cnn, trainable=True, quantized=False)
     updates = OrderedDict(updates.items() + lasagne.updates.adam(loss_or_grads=loss, params=params, learning_rate=LR).items())
 
     test_output = lasagne.layers.get_output(cnn, deterministic=True)
@@ -337,7 +349,7 @@ if __name__ == "__main__":
 
     print('Training...')
     
-    binary_net.train(
+    quantized_net.train(
             train_fn,val_fn,
             cnn,
             batch_size,

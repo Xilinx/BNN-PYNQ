@@ -32,19 +32,27 @@
 #SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import lasagne
-import binary_net
+import quantization as q
+import quantized_net as qn
 
 def genLfc(input, num_outputs, learning_parameters):
     # A function to generate the lfc network topology which matches the overlay for the Pynq board.
     # WARNING: If you change this file, it's likely the resultant weights will not fit on the Pynq overlay.
     if num_outputs < 1 or num_outputs > 64:
         error("num_outputs should be in the range of 1 to 64.")
-    stochastic = False
-    binary = True
-    H = 1
     num_units = 1024
     n_hidden_layers = 3
-    activation = binary_net.binary_tanh_unit
+    if learning_parameters.activation_bits == 1:
+        act_quant = q.QuantizationBinary()
+    else:
+        act_quant = q.QuantizationFixed(learning_parameters.activation_bits,
+            learning_parameters.activation_bits - 2)
+    activation = qn.FixedHardTanH(act_quant)
+    if learning_parameters.weight_bits == 1:
+        weight_quant = q.QuantizationBinary()
+    else:
+        weight_quant = q.QuantizationFixed(learning_parameters.weight_bits,
+            learning_parameters.weight_bits - 2)
     W_LR_scale = learning_parameters.W_LR_scale
     epsilon = learning_parameters.epsilon
     alpha = learning_parameters.alpha
@@ -61,11 +69,9 @@ def genLfc(input, num_outputs, learning_parameters):
     
     for k in range(n_hidden_layers):
 
-        mlp = binary_net.DenseLayer(
+        mlp = qn.DenseLayer(
                 mlp, 
-                binary=binary,
-                stochastic=stochastic,
-                H=H,
+                quantization=weight_quant,
                 W_LR_scale=W_LR_scale,
                 nonlinearity=lasagne.nonlinearities.identity,
                 num_units=num_units)                  
@@ -83,11 +89,9 @@ def genLfc(input, num_outputs, learning_parameters):
                 mlp, 
                 p=dropout_hidden)
     
-    mlp = binary_net.DenseLayer(
+    mlp = qn.DenseLayer(
                 mlp, 
-                binary=binary,
-                stochastic=stochastic,
-                H=H,
+                quantization=weight_quant,
                 W_LR_scale=W_LR_scale,
                 nonlinearity=lasagne.nonlinearities.identity,
                 num_units=num_outputs)
