@@ -42,7 +42,7 @@ The repo is organized as follows:
 	-	src: contains the sources of the different precision networks, the libraries to rebuild them, and scripts to train and pack the weights:
 		- library: FINN library for HLS QNN descriptions, host code, script to rebuilt and drivers for the PYNQ and Ultra96 (please refer to README for more details)
 		- network: HLS top functions for QNN topologies (CNV and LFC) with different implementations for weight and activation precision, host code and make script for HW and SW build (please refer to README for more details)
-		- training: scripts to train on the Cifar10 and MNIST datasets and scripts to pack the weights in a binary format which can be read by the overlay
+		- training: scripts to train on the Cifar10, GTSRB and MNIST datasets and scripts to pack the weights in a binary format which can be read by the overlay
 	-	bitstreams: contains the bitstreams for the 5 overlays
 		- pynqZ1-Z2: bitstreams for Pynq devices
 		- ultra96: bitstreams for Ultra96 devices
