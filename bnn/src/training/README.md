@@ -22,39 +22,71 @@ The overlay can be found here: [https://github.com/Xilinx/BNN-PYNQ](https://gith
 * If using a non-dedicated system, use [virtualenv](https://virtualenv.pypa.io/) to install the python requirements
 * If you don't have access to a GPU, use an [Amazon Web Service EC2 container](#installing-the-training-environment)
 
+### Using Docker
+
+A working training environment is quite difficult to set up,
+if you prefer you can use our provided [Dockerfiles](docker/) to build a working environment.
+
 ## Training Networks
 
 ### MNIST MLP
 
+Currently our tools support generating weights for LFC networks with 1-bit weights and 1 or 2 bit activations.
+
 ```bash
-    $ python mnist.py
+    $ python mnist.py -wb WEIGHT_BITS -ab ACTIVATION_BITS
 ```
-    
+
+where `WEIGHT_BITS` / `ACTIVATION_BITS` refer to the number of bits you wish to use for weights / activations respectively.
 This python script trains an MLP (denoted LFC) on MNIST with BinaryNet.
 It should run for about 2 hours on a GRID K520 GPU (i.e., a g2.2xlarge instance on AWS.)
-The final test error should be around **1.52%**.
+
+**Accuracy**
+
+| Model | Weight Bits   | Activation Bits   | Test Error |
+|:------|---------------|-------------------|-----------:|
+| LFC   |             1 |                 1 |     1.65%  |
+| LFC   |             1 |                 2 |     1.45%  |
 
 ### CIFAR-10 ConvNet
 
+Currently our tools support generating weights for CNV networks with 1 or 2 bit weights and 1 or 2 bit activations.
+
 ```bash
-    $ python cifar10.py
+    $ python cifar10.py -wb WEIGHT_BITS -ab ACTIVATION_BITS
 ```
-    
+
+where `WEIGHT_BITS` / `ACTIVATION_BITS` refer to the number of bits you wish to use for weights / activations respectively.
 This python script trains a ConvNet (denoted CNV) on CIFAR-10 with BinaryNet.
 It should run for about 43 hours on a GRID K520 GPU (i.e., a g2.2xlarge instance on AWS.)
 With cuDNN installed, it should be about 12 hours.
-The final test error should be around **19.91%**.
+
+**Accuracy**
+
+| Model | Weight Bits   | Activation Bits   | Test Error |
+|:------|---------------|-------------------|-----------:|
+| CNV   |             1 |                 1 |     20.46% |
+| CNV   |             1 |                 2 |     16.37% |
+| CNV   |             2 |                 2 |     15.20% |
 
 ### German Traffic Sign Recognition Benchmark ConvNet
 
+Currently our tools support generating weights for CNV networks with 1-bit weights and 1-activations.
+
 ```bash
-    $ python gtsrb.py -ip GTSRB
+    $ python gtsrb.py -ip GTSRB -wb WEIGHT_BITS -ab ACTIVATION_BITS
 ```
-    
+
+where `WEIGHT_BITS` / `ACTIVATION_BITS` refer to the number of bits you wish to use for weights / activations respectively.
 This python script trains a ConvNet (denoted CNV) on GTSRB (with an extra \"junk\" class) with BinaryNet.
 It should run for about 32 hours on a GRID K520 GPU (i.e., a g2.2xlarge instance on AWS.)
 With cuDNN installed, it should be about 9 hours.
-The final test error should be around **2.81%**.
+
+**Accuracy**
+
+| Model | Weight Bits   | Activation Bits   | Test Error |
+|:------|---------------|-------------------|-----------:|
+| CNV   |             1 |                 1 |      3.37% |
 
 ### Training Your Own Networks
 
@@ -77,13 +109,14 @@ In order to train an LFC or a CNV network see the steps below.
 
 ## Generating Binary Weights Files
 
-Once the training process has finished, you'll have a file DATASET_parameters.npz (where DATASET is either "mnist", "cifar10" or "gtsrb") containing a list of numpy arrays which correspond to the real trained weights in each layer.
+Once the training process has finished, you'll have a file DATASET-Xw-Ya.npz (where DATASET is either "mnist", "cifar10" or "gtsrb", X is the number of weight bits and Y is the number of activation bits) containing a list of numpy arrays which correspond to the real trained weights in each layer.
 In order to load them into the [Pynq BNN Overlay](https://github.com/Xilinx/BNN-PYNQ) they need converted from real floating point values into binary values and packed into .bin files. 
 
 ```bash
-    $ python DATASET-gen-binary-weights.py
+    $ python DATASET-gen-binary-weights[-WXAY].py
 ```
 
+where X/Y correspond to weight/activation bits respectively.
 These scripts will process the weights for the given dataset and place them into a new directory.
 In order to load these weights on the Pynq, place the resultant folder into the `/opt/python3.6/lib/python3.6/site-packages/bnn/params` directory on the Pynq device.
 
