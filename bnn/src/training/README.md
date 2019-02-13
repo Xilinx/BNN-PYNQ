@@ -79,8 +79,8 @@ Currently our tools support generating weights for CNV networks with 1-bit weigh
 
 where `WEIGHT_BITS` / `ACTIVATION_BITS` refer to the number of bits you wish to use for weights / activations respectively.
 This python script trains a ConvNet (denoted CNV) on GTSRB (with an extra \"junk\" class) with BinaryNet.
-It should run for about 32 hours on a GRID K520 GPU (i.e., a g2.2xlarge instance on AWS.)
-With cuDNN installed, it should be about 9 hours.
+It should run for about 64 hours on a GRID K520 GPU (i.e., a g2.2xlarge instance on AWS.)
+With cuDNN installed, it should be about 18 hours.
 
 **Accuracy**
 
