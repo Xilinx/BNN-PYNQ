@@ -124,7 +124,7 @@ void quantiseAndPack(const tiny_cnn::vec_t & in, ExtMemWord * out, unsigned int 
   ExtMemWord tmpv[bitsPerExtMemWord / inWidth];
   // now pack each quantised value as required.
   for(unsigned int i=0; i < in.size(); i++) {
-    ap_fixed<inWidth, 1, AP_TRN, AP_SAT> fxdValue = in[i];
+    ap_fixed<inWidth, 1, AP_RND, AP_SAT> fxdValue = in[i];
     ap_uint<inWidth> uValue = *reinterpret_cast<ap_uint<inWidth> *>(&fxdValue); // Interpret the fixed value as an integer.
     ExtMemWord v = ((ExtMemWord)uValue & (~(ExtMemWord)0 >> (bitsPerExtMemWord - inWidth))); // Zero all bits except for the (bitsPerExtMemWord - inWidth) least significant bits.
     out[i / (bitsPerExtMemWord / inWidth)] |= (v << inWidth*(i % (bitsPerExtMemWord / inWidth)));
