@@ -168,13 +168,13 @@ class Recast {
 template<typename T>
 struct Caster {
 	template<int M>
-	static T cast(ap_uint<M> const &arg) { return  T(arg); }
+	static T cast(ap_int<M> const &arg) { return  T(arg); }
 };
 
 template<int W, int I, ap_q_mode Q, ap_o_mode O, int N>
 struct Caster<ap_fixed<W, I, Q, O, N>> {
   template<int M>
-  static ap_fixed<W, I, Q, O, N> cast(ap_uint<M> const &arg) {
+  static ap_fixed<W, I, Q, O, N> cast(ap_int<M> const &arg) {
     return *reinterpret_cast<ap_fixed<W, I, Q, O, N> const*>(&arg);
   }
 }; 
@@ -201,7 +201,7 @@ class Slice {
     T operator[](unsigned const  idx) const {
 #pragma HLS inline 
       ap_uint<STRIDE> const  r = m_val((idx+1)*STRIDE-1, idx*STRIDE); 
-      return  Caster<T>::cast(r);
+      return  Caster<T>::cast(ap_int<STRIDE>(r));
     }
     auto operator[](unsigned const  idx) -> decltype(m_val(STRIDE, 0)) {
 #pragma HLS inline

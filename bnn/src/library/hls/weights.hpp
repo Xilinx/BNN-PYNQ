@@ -124,9 +124,9 @@ class FixedPointWeights {
       std::array<WT,SIMD> temp;
 	  for(unsigned int i=0; i<SIMD; i++) {
 #pragma HLS unroll
-        ap_uint<WT::width> local_temp;
+        ap_int<WT::width> local_temp;
         local_temp = m_par.m_weights[pe][m_idx]((i+1)*WT::width-1, i*WT::width);
-        WT value = WT (local_temp);
+        WT value = *reinterpret_cast<WT*>(&local_temp);
         temp[i] = value;
       }
       return  temp;
