@@ -35,7 +35,7 @@ from finnthesizer import *
 
 if __name__ == "__main__":
     bnnRoot = "."
-    npzFile = bnnRoot + "/gtsrb_parameters.npz"
+    npzFile = bnnRoot + "/gtsrb-1w-1a.npz"
     targetDirBin = bnnRoot + "/binparam-cnvW1A1-pynq-gtrsb"
     targetDirHLS = bnnRoot + "/binparam-cnvW1A1-pynq-gtrsb/hw"
     #topology of convolutional layers (only for config.h defines)
