@@ -290,17 +290,19 @@ void FoldedMVLoadLayerMem(std::string dir, unsigned int layerNo, unsigned int pe
     wf.close();
 
     // load thresholds
-    ifstream tf(dir + "/" + to_string(layerNo) + "-" + to_string(pe) + "-thres.bin", ios::binary | ios::in);
-    if(!tf.is_open())
-      throw "Could not open file";
-    for(unsigned int line = 0 ; line < linesTMem; line++) {
-      for(unsigned int i = 0; i < cntThresh; i++){
-        ExtMemWord e = 0;
-        tf.read((char *)&e, sizeof(ExtMemWord));
-        FoldedMVMemSet(layerNo * 2 + 1, pe, line,i, e);
+    if(cntThresh > 0) {
+      ifstream tf(dir + "/" + to_string(layerNo) + "-" + to_string(pe) + "-thres.bin", ios::binary | ios::in);
+      if(!tf.is_open())
+        throw "Could not open file";
+      for(unsigned int line = 0 ; line < linesTMem; line++) {
+        for(unsigned int i = 0; i < cntThresh; i++){
+    	  ExtMemWord e = 0;
+          tf.read((char *)&e, sizeof(ExtMemWord));
+          FoldedMVMemSet(layerNo * 2 + 1, pe, line,i, e);
+        }
       }
+      tf.close();
     }
-    tf.close();
   }
 }
 
