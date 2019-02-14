@@ -95,7 +95,7 @@ if __name__ == "__main__":
         print "WMem = %d TMem = %d" % (neededWMem, neededTMem)
         print "IPrecision = %d.%d WPrecision = %d.%d APrecision = %d.%d" % (IPrecision_integer, IPrecision_fractional, WPrecision_integer,WPrecision_fractional, APrecision_integer, APrecision_fractional)
 
-        m = BNNProcElemMem(peCount, simdCount, neededWMem, neededTMem, WPrecision_integer, APrecision_integer, IPrecision_integer, WPrecision_fractional, APrecision_fractional, IPrecision_fractional, numThresBits=24, numThresIntBits=16)
+        m = BNNProcElemMem(peCount, simdCount, neededWMem, neededTMem, WPrecision_integer, APrecision_integer, IPrecision_integer, WPrecision_fractional, APrecision_fractional, IPrecision_fractional)
         m.addMatrix(w,t,paddedW,paddedH)
 
         config += (printConvDefines("L%d" % convl, filterDim[convl], ifm_ch[convl], ifm[convl], ofm_ch[convl], ofm[convl], simdCount, peCount, neededWMem, neededTMem, WPrecision_integer, APrecision_integer, WPrecision_fractional, APrecision_fractional)) + "\n" 
@@ -141,11 +141,16 @@ if __name__ == "__main__":
       APrecision_integer = ActivationPrecisions_integer[fcl]
       IPrecision_integer = InputPrecisions_integer[fcl]
       print "Using peCount = %d simdCount = %d for engine %d" % (peCount, simdCount, fcl)
-      (w,t) =  rHW.readFCBNComplex(WPrecision_fractional, APrecision_fractional, IPrecision_fractional, WPrecision_integer, APrecision_integer, IPrecision_integer)
-      # compute the padded width and height
-      paddedH = padTo(w.shape[0], peCount)
-      if (fcl == 8):
+      
+      if fcl == 8:
+        (w,t) = rHW.readFCBNComplex_no_thresholds(WPrecision_fractional, APrecision_fractional, IPrecision_fractional, WPrecision_integer, APrecision_integer, IPrecision_integer)
         paddedH = padTo(w.shape[0], 64)
+        useThresholds = False
+      else:
+        (w,t) = rHW.readFCBNComplex(WPrecision_fractional, APrecision_fractional, IPrecision_fractional, WPrecision_integer, APrecision_integer, IPrecision_integer)
+        paddedH = padTo(w.shape[0], peCount)
+        useThresholds = True   
+            
       paddedW = padTo(w.shape[1], simdCount)
       # compute memory needed for weights and thresholds
       neededWMem = (paddedW * paddedH) / (simdCount * peCount)
@@ -164,7 +169,7 @@ if __name__ == "__main__":
 
       #generate binary weight and threshold files to initialize memory during runtime
       #because HLS might not work for very large header files 
-      m.createBinFiles(targetDirBin, str(fcl))
+      m.createBinFiles(targetDirBin, str(fcl), useThresholds)
 
     config+="#endif //__LAYER_CONFIG_H_\n"
 
