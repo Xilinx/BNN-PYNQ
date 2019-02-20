@@ -25,6 +25,8 @@ If you find BNN-PYNQ useful, please cite the <a href="https://arxiv.org/abs/1612
 
 ## Quick Start
 
+Please refer to PYNQ <a href="https://pynq.readthedocs.io/en/latest/getting_started.html" target="_blank"> Getting Started</a> guide to set-up your PYNQ Board.
+
 In order to install it to your PYNQ, connect to the board, open a terminal and type:
 
 ```
