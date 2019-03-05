@@ -120,6 +120,8 @@ where X/Y correspond to weight/activation bits respectively.
 These scripts will process the weights for the given dataset and place them into a new directory.
 In order to load these weights on the Pynq, place the resultant folder into the `/opt/python3.6/lib/python3.6/site-packages/bnn/params` directory on the Pynq device.
 
+If some changes have been made to the PE or SIMD counts, the hardware overlay has to be rebuild. The weights generation scripts will also generate a `config.h` file in the `hw` subfolder which has to be moved in the appropriate hw folder before executing the hardware generation flow. 
+
 ## Installing the Training Environment:
 
 There are many ways to set up the training environment, the following steps work on a Ubuntu 16.04 base image on Amazon Web Services (AWS) on a GPU instance.
