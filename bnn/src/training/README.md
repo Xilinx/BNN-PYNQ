@@ -34,7 +34,7 @@ if you prefer you can use our provided [Dockerfiles](docker/) to build a working
 Currently our tools support generating weights for LFC networks with 1-bit weights and 1 or 2 bit activations.
 
 ```bash
-    $ python mnist.py [-wb WEIGHT_BITS] [-ab ACTIVATION_BITS]
+    $ python mnist.py [-wb <WEIGHT_BITS>] [-ab <ACTIVATION_BITS>]
 ```
 
 where `WEIGHT_BITS` / `ACTIVATION_BITS` refer to the number of bits you wish to use for weights / activations respectively.
@@ -53,7 +53,7 @@ It should run for about 2 hours on a GRID K520 GPU (i.e., a g2.2xlarge instance 
 Currently our tools support generating weights for CNV networks with 1 or 2 bit weights and 1 or 2 bit activations.
 
 ```bash
-    $ python cifar10.py [-wb WEIGHT_BITS] [-ab ACTIVATION_BITS]
+    $ python cifar10.py [-wb <WEIGHT_BITS>] [-ab <ACTIVATION_BITS>]
 ```
 
 where `WEIGHT_BITS` / `ACTIVATION_BITS` refer to the number of bits you wish to use for weights / activations respectively.
@@ -74,7 +74,7 @@ With cuDNN installed, it should be about 12 hours.
 Currently our tools support generating weights for CNV networks with 1-bit weights and 1-activations.
 
 ```bash
-    $ python gtsrb.py -ip GTSRB [-wb WEIGHT_BITS] [-ab ACTIVATION_BITS]
+    $ python gtsrb.py -ip GTSRB [-wb <WEIGHT_BITS>] [-ab <ACTIVATION_BITS>]
 ```
 
 where `WEIGHT_BITS` / `ACTIVATION_BITS` refer to the number of bits you wish to use for weights / activations respectively.
@@ -97,14 +97,14 @@ In order to train an LFC or a CNV network see the steps below.
 1. Import training data and store in a Nx3x32x32 numpy array, with each value scaled from -1 to 1.
 1. Put each output label into [one hot encoded](https://en.wikipedia.org/wiki/One-hot) format.
 1. Break the inputs and outputs up into training, validation and test sets.
-1. Replace the lines in cifar10.py which load the training, validation and test sets with your newly imported and formatted numpy arrays.
+1. Replace the lines in `cifar10.py` which load the training, validation and test sets with your newly imported and formatted numpy arrays.
 1. Train the network, if sufficient accuracy isn't achieved, modify some training parameters and try again.
 
 #### LFC:
 1. Import training data and store in a Nx1x28x28 numpy array, with each value either -1 to 1.
 1. Put each output label into [one hot encoded](https://en.wikipedia.org/wiki/One-hot) format.
 1. Break the inputs and outputs up into training, validation and test sets.
-1. Replace the lines in mnist.py which load the training, validation and test sets with your newly imported and formatted numpy arrays.
+1. Replace the lines in `mnist.py` which load the training, validation and test sets with your newly imported and formatted numpy arrays.
 1. Train the network, if sufficient accuracy isn't achieved, modify some training parameters and try again.
 
 ## Generating Binary Weights Files
@@ -153,7 +153,7 @@ At a high level, the instructions perform the following steps:
     $ sudo apt-get install cuda -y
     ```
 
-1.  Install cuDNN by download the runtime and development packages from [https://developer.nvidia.com/cudnn](https://developer.nvidia.com/cudnn).
+1.  Install cuDNN by downloading the runtime and development packages from [https://developer.nvidia.com/cudnn](https://developer.nvidia.com/cudnn).
     If you have not previously done so, you may need to register an account with Nvidia. Once you've downloaded the packages install them as follows:
 
     ```bash
