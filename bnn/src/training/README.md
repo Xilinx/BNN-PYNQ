@@ -34,7 +34,7 @@ if you prefer you can use our provided [Dockerfiles](docker/) to build a working
 Currently our tools support generating weights for LFC networks with 1-bit weights and 1 or 2 bit activations.
 
 ```bash
-    $ python mnist.py -wb WEIGHT_BITS -ab ACTIVATION_BITS
+    $ python mnist.py [-wb WEIGHT_BITS] [-ab ACTIVATION_BITS]
 ```
 
 where `WEIGHT_BITS` / `ACTIVATION_BITS` refer to the number of bits you wish to use for weights / activations respectively.
@@ -53,7 +53,7 @@ It should run for about 2 hours on a GRID K520 GPU (i.e., a g2.2xlarge instance 
 Currently our tools support generating weights for CNV networks with 1 or 2 bit weights and 1 or 2 bit activations.
 
 ```bash
-    $ python cifar10.py -wb WEIGHT_BITS -ab ACTIVATION_BITS
+    $ python cifar10.py [-wb WEIGHT_BITS] [-ab ACTIVATION_BITS]
 ```
 
 where `WEIGHT_BITS` / `ACTIVATION_BITS` refer to the number of bits you wish to use for weights / activations respectively.
@@ -74,7 +74,7 @@ With cuDNN installed, it should be about 12 hours.
 Currently our tools support generating weights for CNV networks with 1-bit weights and 1-activations.
 
 ```bash
-    $ python gtsrb.py -ip GTSRB -wb WEIGHT_BITS -ab ACTIVATION_BITS
+    $ python gtsrb.py -ip GTSRB [-wb WEIGHT_BITS] [-ab ACTIVATION_BITS]
 ```
 
 where `WEIGHT_BITS` / `ACTIVATION_BITS` refer to the number of bits you wish to use for weights / activations respectively.
