@@ -12,7 +12,7 @@ These images require a working installations of the following:
 The docker images can be built as follows:
 
 ```bash
-docker build -t bnn-pynq:[gpu|cpu] [cpu|gpu]
+docker build -t bnn-pynq:<cpu|gpu> <cpu|gpu>
 ```
 
 Note, the user must have sufficient privileges to use docker.
@@ -23,7 +23,7 @@ Once you have a built docker image, you can run the image and begin training.
 You can instantiate the docker image as follows:
 
 ```bash
-docker run -i -t -v /path/to/BNN-PYNQ:/root/BNN-PYNQ -v /dataset/directory:/root/.pylearn2 bnn-pynq:[gpu|cpu] /bin/bash
+docker run -i -t -v /path/to/BNN-PYNQ:/root/BNN-PYNQ -v /dataset/directory:/root/.pylearn2 bnn-pynq:<cpu|gpu> /bin/bash
 ```
 
 Note, `/path/to/BNN-PYNQ` refers to the path on the host where you have cloned the BNN-PYNQ repository and
