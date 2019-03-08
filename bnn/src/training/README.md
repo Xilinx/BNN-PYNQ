@@ -118,7 +118,7 @@ In order to load them into the [Pynq BNN Overlay](https://github.com/Xilinx/BNN-
 
 where X/Y correspond to weight/activation bits respectively.
 These scripts will process the weights for the given dataset and place them into a new directory.
-In order to load these weights on the Pynq, place the resultant folder into the `/opt/python3.6/lib/python3.6/site-packages/bnn/params` directory on the Pynq device.
+In order to load these weights on the Pynq, place the resultant folder into the `/usr/local/lib/python3.6/dist-packages/bnn/params` directory on the Pynq device (PYNQ version 2.3 or newer).
 
 If some changes have been made to the PE or SIMD counts, the hardware overlay has to be rebuild. The weights generation scripts will also generate a `config.h` file in the `hw` subfolder which has to be moved in the appropriate hw folder before executing the hardware generation flow. 
 
