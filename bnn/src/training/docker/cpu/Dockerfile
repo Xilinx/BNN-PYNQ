@@ -39,6 +39,7 @@ RUN cd /root &&\
     pip install git+https://github.com/Theano/Theano.git@rel-0.9.0beta1 &&\
     pip install https://github.com/Lasagne/Lasagne/archive/master.zip &&\
     pip install Pillow &&\
+    pip install bitstring &&\
     pip install numpy==1.11.0 &&\
     mkdir -p mlpy/src &&\
     cd mlpy/src &&\
