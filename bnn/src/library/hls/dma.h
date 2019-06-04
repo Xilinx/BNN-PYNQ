@@ -48,11 +48,13 @@
 #include <ap_int.h>
 #include <hls_stream.h>
 
+unsigned int paddedSizeHW(unsigned int in, unsigned int padTo);
+
 // essentially small DMA generators, moving data between mem-mapped arrays and streams
 template<unsigned int DataWidth, unsigned int numBytes>
 void Mem2Stream(ap_uint<DataWidth> * in, hls::stream<ap_uint<DataWidth> > & out) {
   CASSERT_DATAFLOW(DataWidth % 8 == 0);
-  const unsigned int numWords = numBytes / (DataWidth / 8);
+  const unsigned int numWords = paddedSizeHW(numBytes, (DataWidth / 8)) / (DataWidth / 8);
   CASSERT_DATAFLOW(numWords != 0);
   for (unsigned int i = 0; i < numWords; i++) {
 #pragma HLS PIPELINE II=1
@@ -80,7 +82,7 @@ void Stream2Mem(hls::stream<ap_uint<DataWidth> > & in, ap_uint<DataWidth> * out)
 // checking the modulo takes a lot more resources)
 template<unsigned int DataWidth, unsigned int numBytes>
 void Mem2Stream_Batch(ap_uint<DataWidth> * in, hls::stream<ap_uint<DataWidth> > & out, const unsigned int numReps) {
-  const unsigned int indsPerRep = numBytes / (DataWidth / 8);
+  const unsigned int indsPerRep = paddedSizeHW(numBytes, (DataWidth / 8)) / (DataWidth / 8);
   unsigned int rep = 0;
   // make sure Mem2Stream does not get inlined here
   // we lose burst inference otherwise
