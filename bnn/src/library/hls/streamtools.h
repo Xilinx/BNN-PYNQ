@@ -142,9 +142,10 @@ void StreamingDataWidthConverter_Batch(hls::stream<ap_uint<InWidth> > & in,
       // increment read input count
       i++;
       // wraparound logic to recreate nested loop functionality
-      if (i == inPerOut) {
+      if (i == inPerOut || t == (totalIters-1)) {
         i = 0;
         out.write(eo);
+	eo = 0;
       }
     }
   }
