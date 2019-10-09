@@ -30,7 +30,7 @@ Please refer to PYNQ <a href="https://pynq.readthedocs.io/en/latest/getting_star
 In order to install it to your PYNQ, connect to the board, open a terminal and type:
 
 ```
-sudo pip3 install git+https://github.com/Xilinx/BNN-PYNQ.git (on PYNQ v2.3)
+sudo pip3 install git+https://github.com/Xilinx/BNN-PYNQ.git (on PYNQ v2.3 and later versions, tested up to v2.5)
 sudo pip3.6 install git+https://github.com/Xilinx/BNN-PYNQ.git (on PYNQ v2.2 and earlier)
 ```
 
