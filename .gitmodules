@@ -1,0 +1,4 @@
+[submodule "bnn/src/library/finn-hlslib"]
+	path = bnn/src/library/finn-hlslib
+	url = https://github.com/Xilinx/finn-hlslib.git
+	branch = master
