@@ -71,6 +71,12 @@ if [ -d "xilinx-tiny-cnn/" ]; then
 else
   git clone https://github.com/Xilinx/xilinx-tiny-cnn.git
 fi
+cd library
+if [ -d "${XILINX_BNN_ROOT}/library/finn-hlslib" ]; then
+	echo "FINN hls library already cloned"
+else
+	git clone https://github.com/Xilinx/finn-hlslib.git
+fi
 cd $OLD_DIR
 
 if [[ ("$BOARD" == "Pynq-Z1") || ("$BOARD" == "Pynq-Z2") ]]; then
@@ -88,7 +94,7 @@ TINYCNN_PATH=$XILINX_BNN_ROOT/xilinx-tiny-cnn
 BNN_PATH=$XILINX_BNN_ROOT/network
 BNNLIB=$XILINX_BNN_ROOT/library
 HOSTLIB=$BNNLIB/host
-HLSLIB=$BNNLIB/hls
+HLSLIB=$BNNLIB/finn-hlslib
 HLSTOP=$BNN_PATH/$NETWORK/hw
 DRIVER_PATH=$BNNLIB/driver
 

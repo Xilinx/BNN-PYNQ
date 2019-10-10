@@ -86,6 +86,12 @@ if [ -d "${XILINX_BNN_ROOT}/xilinx-tiny-cnn/" ]; then
 else
 	git clone https://github.com/Xilinx/xilinx-tiny-cnn.git
 fi
+cd library
+if [ -d "${XILINX_BNN_ROOT}/library/finn-hlslib" ]; then
+	echo "FINN hls library already cloned"
+else
+	git clone https://github.com/Xilinx/finn-hlslib.git
+fi
 cd $OLD_DIR
 
 
