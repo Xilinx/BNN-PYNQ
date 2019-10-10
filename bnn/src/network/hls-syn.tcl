@@ -51,7 +51,7 @@ set expected_result [lindex $argv 6]
 set config_proj_part [lindex $argv 7] 
 
 
-set config_bnnlibdir "$::env(XILINX_BNN_ROOT)/library/hls"
+set config_bnnlibdir "$::env(XILINX_BNN_ROOT)/library/finn-hlslib"
 set config_bnnhostlibdir "$::env(XILINX_BNN_ROOT)/library/host"
 set config_tinycnn "$::env(XILINX_BNN_ROOT)/xilinx-tiny-cnn"
 puts "BNN HLS library: $config_bnnlibdir"
