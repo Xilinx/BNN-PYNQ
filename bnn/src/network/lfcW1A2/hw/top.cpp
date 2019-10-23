@@ -41,9 +41,9 @@
  *
  *****************************************************************************/
 
-#define CASSERT_DATAFLOW(x)
-#include "config.h"
 
+#include "config.h"
+#include "bnn-library.h"
 #include "dma.h"
 #include "fclayer.h"
 #include "weights.hpp"
