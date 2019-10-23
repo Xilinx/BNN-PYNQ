@@ -62,7 +62,7 @@ The repo is organized as follows:
 In order to rebuild the hardware designs, the repo should be cloned in a machine with installation of the Vivado Design Suite (tested with 2018.2). 
 Following the step-by-step instructions:
 
-1.	Clone the repository on your linux machine: git clone https://github.com/Xilinx/BNN-PYNQ.git;
+1.	Clone the repository on your linux machine: `git clone https://github.com/Xilinx/BNN-PYNQ.git --recursive`;
 2.	Move to `<clone_path>/BNN_PYNQ/bnn/src/network/`
 3.	Set the XILINX_BNN_ROOT environment variable to `<clone_path>/BNN_PYNQ/bnn/src/`
 4.	Launch the shell script make-hw.sh with passing parameters for target network, target platform and mode, with the command `./make-hw.sh {network} {platform} {mode}` where:
