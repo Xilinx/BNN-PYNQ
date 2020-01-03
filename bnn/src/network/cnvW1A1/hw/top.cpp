@@ -168,23 +168,22 @@ void DoCompute(ap_uint<64> *in, ap_uint<64>* out, const unsigned int numReps) {
   StreamingDataWidthConverter_Batch<64, 192, (32 * 32 * 3 * 8) / 64>(inter0, inter0_1, numReps);
   StreamingDataWidthConverter_Batch<192, 24, (32 * 32 * 3 * 8) / 192>(inter0_1, inter0_2, numReps);
   // convolutional layers
-  ConvLayer_Batch<L0_K, L0_IFM_CH, L0_IFM_DIM, L0_OFM_CH, L0_OFM_DIM, L0_SIMD, L0_PE, Slice<ap_fixed<8, 1, AP_TRN, AP_SAT>>, Identity, Recast<Binary>>(inter0_2, inter1, weights0, threshs0, numReps, ap_resource_lut());
-  ConvLayer_Batch<L1_K, L1_IFM_CH, L1_IFM_DIM, L1_OFM_CH, L1_OFM_DIM, L1_SIMD, L1_PE, Recast<XnorMul>>(inter1, inter2, weights1, threshs1, numReps, ap_resource_lut());
-
+  ConvLayer_Batch<L0_K, L0_IFM_CH, L0_IFM_DIM, L0_OFM_CH, L0_OFM_DIM, L0_SIMD, L0_PE, Slice<ap_fixed<8, 1, AP_TRN, AP_SAT>>, Slice<ap_uint<1>,1>, Recast<Binary>>(inter0_2, inter1, weights0, threshs0, numReps, ap_resource_lut());
+  ConvLayer_Batch<L1_K, L1_IFM_CH, L1_IFM_DIM, L1_OFM_CH, L1_OFM_DIM, L1_SIMD, L1_PE, Recast<XnorMul>, Slice<ap_uint<1>>>(inter1, inter2, weights1, threshs1, numReps, ap_resource_lut());
   StreamingMaxPool_Batch<L1_OFM_DIM, 2, L1_OFM_CH>(inter2, inter3, numReps);
 
-  ConvLayer_Batch<L2_K, L2_IFM_CH, L2_IFM_DIM, L2_OFM_CH, L2_OFM_DIM, L2_SIMD, L2_PE, Recast<XnorMul>>(inter3, inter4, weights2, threshs2, numReps, ap_resource_lut());
-  ConvLayer_Batch<L3_K, L3_IFM_CH, L3_IFM_DIM, L3_OFM_CH, L3_OFM_DIM, L3_SIMD, L3_PE, Recast<XnorMul>>(inter4, inter5, weights3, threshs3, numReps, ap_resource_lut());
+  ConvLayer_Batch<L2_K, L2_IFM_CH, L2_IFM_DIM, L2_OFM_CH, L2_OFM_DIM, L2_SIMD, L2_PE, Recast<XnorMul>, Slice<ap_uint<1>>>(inter3, inter4, weights2, threshs2, numReps, ap_resource_lut());
+  ConvLayer_Batch<L3_K, L3_IFM_CH, L3_IFM_DIM, L3_OFM_CH, L3_OFM_DIM, L3_SIMD, L3_PE, Recast<XnorMul>, Slice<ap_uint<1>>>(inter4, inter5, weights3, threshs3, numReps, ap_resource_lut());
 
   StreamingMaxPool_Batch<L3_OFM_DIM, 2, L3_OFM_CH>(inter5, inter6, numReps);
 
-  ConvLayer_Batch<L4_K, L4_IFM_CH, L4_IFM_DIM, L4_OFM_CH, L4_OFM_DIM, L4_SIMD, L4_PE, Recast<XnorMul>>(inter6, inter7, weights4, threshs4, numReps, ap_resource_lut());
-  ConvLayer_Batch<L5_K, L5_IFM_CH, L5_IFM_DIM, L5_OFM_CH, L5_OFM_DIM, L5_SIMD, L5_PE, Recast<XnorMul>>(inter7, inter8, weights5, threshs5, numReps, ap_resource_lut());
+  ConvLayer_Batch<L4_K, L4_IFM_CH, L4_IFM_DIM, L4_OFM_CH, L4_OFM_DIM, L4_SIMD, L4_PE, Recast<XnorMul>, Slice<ap_uint<1>>>(inter6, inter7, weights4, threshs4, numReps, ap_resource_lut());
+  ConvLayer_Batch<L5_K, L5_IFM_CH, L5_IFM_DIM, L5_OFM_CH, L5_OFM_DIM, L5_SIMD, L5_PE, Recast<XnorMul>, Slice<ap_uint<1>>>(inter7, inter8, weights5, threshs5, numReps, ap_resource_lut());
   // fully connected layers
   WidthAdjustedOutputStream<16 * L8_PE, 64, L8_MH / L8_PE>  wa_out(memOutStrm, numReps);
-  StreamingFCLayer_Batch<L6_MW, L6_MH, L6_SIMD, L6_PE, Recast<XnorMul>>
+  StreamingFCLayer_Batch<L6_MW, L6_MH, L6_SIMD, L6_PE, Recast<XnorMul>, Slice<ap_uint<1>>>
     (inter8, inter9,  weights6, threshs6, numReps, ap_resource_lut());
-  StreamingFCLayer_Batch<L7_MW, L7_MH, L7_SIMD, L7_PE, Recast<XnorMul>>
+  StreamingFCLayer_Batch<L7_MW, L7_MH, L7_SIMD, L7_PE, Recast<XnorMul>, Slice<ap_uint<1>>>
     (inter9, inter10, weights7, threshs7, numReps, ap_resource_lut());
   StreamingFCLayer_Batch<L8_MW, L8_MH, L8_SIMD, L8_PE, Recast<XnorMul>, Slice<ap_uint<16> >>
     (inter10, static_cast<hls::stream<ap_uint<16 * L8_PE>>&>(wa_out), weights8, PassThroughActivation<ap_uint<16>>(), numReps, ap_resource_lut());
