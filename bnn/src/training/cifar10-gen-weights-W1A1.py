@@ -105,7 +105,7 @@ if __name__ == "__main__":
         config += (printConvDefines("L%d" % convl, filterDim[convl], ifm_ch[convl], ifm[convl], ofm_ch[convl], ofm[convl], simdCount, peCount, neededWMem, neededTMem, WPrecision_integer, APrecision_integer, WPrecision_fractional, APrecision_fractional)) + "\n" 
 
         #generate HLS weight and threshold header file to initialize memory directly on bitstream generation       
-        #m.createHLSInitFiles(targetDirHLS + "/memdata-" + str(convl) + ".h", str(convl))
+        # m.createHLSInitFiles(targetDirHLS + "/memdata-" + str(convl) + ".h", str(convl))
 
         #generate binary weight and threshold files to initialize memory during runtime
         #because HLS might not work for very large header files        
@@ -129,7 +129,7 @@ if __name__ == "__main__":
         config += (printConvDefines("L%d" % convl, filterDim[convl], ifm_ch[convl], ifm[convl], ofm_ch[convl], ofm[convl], simdCount, peCount, neededWMem, neededTMem, WPrecision_integer, APrecision_integer, WPrecision_fractional, APrecision_fractional)) + "\n" 
 
         #generate HLS weight and threshold header file to initialize memory directly on bitstream generation        
-        #m.createHLSInitFiles(targetDirHLS + "/memdata-" + str(convl) + ".h", str(convl))
+        # m.createHLSInitFiles(targetDirHLS + "/memdata-" + str(convl) + ".h", str(convl))
 
         #generate binary weight and threshold files to initialize memory during runtime
         #because HLS might not work for very large header files        
@@ -171,7 +171,7 @@ if __name__ == "__main__":
       config += (printFCDefines("L%d" % fcl, simdCount, peCount, neededWMem, neededTMem, paddedW, paddedH, WPrecision_integer, APrecision_integer, WPrecision_fractional, APrecision_fractional)) + "\n" 
 
       #generate HLS weight and threshold header file to initialize memory directly on bitstream generation
-      #m.createHLSInitFiles(targetDirHLS + "/memdata-" + str(fcl) + ".h", str(fcl))
+      # m.createHLSInitFiles(targetDirHLS + "/memdata-" + str(fcl) + ".h", str(fcl))
 
       #generate binary weight and threshold files to initialize memory during runtime
       #because HLS might not work for very large header files        
