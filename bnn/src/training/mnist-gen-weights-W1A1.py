@@ -36,18 +36,20 @@ import finnthesizer as fth
 if __name__ == "__main__":
     bnnRoot = "."
     npzFile = bnnRoot + "/mnist-1w-1a.npz"
-    targetDirBin = bnnRoot + "/binparam-lfcW1A1-pynq"
-    targetDirHLS = bnnRoot + "/binparam-lfcW1A1-pynq/hw"
+    targetDirBin = bnnRoot + "/lfcW1A1"
+    targetDirHLS = bnnRoot + "/lfcW1A1/hw"
 
     simdCounts = [64, 32, 64,  8]
     peCounts   = [32, 64, 32, 16]
 
-    WeightsPrecisions_fractional    = [0, 0, 0, 0]
-    ActivationPrecisions_fractional = [0, 0, 0, 0]
-    InputPrecisions_fractional      = [0, 0, 0, 0]
     WeightsPrecisions_integer       = [1, 1, 1, 1]
-    ActivationPrecisions_integer    = [1, 1, 1, 1]
+    WeightsPrecisions_fractional    = [0, 0, 0, 0]
+    
     InputPrecisions_integer         = [1, 1, 1, 1]
+    InputPrecisions_fractional      = [0, 0, 0, 0]
+    
+    ActivationPrecisions_integer    = [1, 1, 1, 1]
+    ActivationPrecisions_fractional = [0, 0, 0, 0]
 
     classes = map(lambda x: str(x), range(10))
 
