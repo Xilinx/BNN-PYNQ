@@ -591,13 +591,13 @@ class BNNProcElemMem:
     # add padding
     if self.numThresIntBits is None:
         (Wp, Tp) = self.__padMatrix(W, T, padW, padH)
-    else: # Convert thresholds to ints before updating the PE mapping.
+    else:
         #Ti = map(lambda x: int(x*2**(self.numThresBits - self.numThresIntBits))/(2.**(self.numThresBits - self.numThresIntBits)), T)
-        if (self.APrecision==1):
-            Ti = map(lambda x: int(x*2**(self.numThresBits - self.numThresIntBits))/(2.**(self.numThresBits - self.numThresIntBits)), T)
-        else:
-            round_func = lambda x: int(x)/(2.**(self.numThresBits - self.numThresIntBits))
-            Ti = map(np.vectorize(round_func), T)
+        # if (self.APrecision==1):
+        #     Ti = map(lambda x: int(x*2**(self.numThresBits - self.numThresIntBits))/(2.**(self.numThresBits - self.numThresIntBits)), T)
+        # else:
+        round_func = lambda x: int(x)/(2.**(self.numThresBits - self.numThresIntBits))
+        Ti = map(np.vectorize(round_func), T)
         (Wp, Tp) = self.__padMatrix(W, Ti, padW, padH)
     # map to PE memories
     self.__updatePEMapping(Wp, Tp)
@@ -739,8 +739,15 @@ class BNNProcElemMem:
         outFile.write("FixedPointWeights<%d,%s,%d,%d> weights%s= {\n{\n" % (self.numSIMD, wMemType, self.numPE, self.weightMemDepth, varSuffix))
     outFile.write(",".join(map(lambda pe:"{\n"+(",\n".join(map(self.__makeHLSInit, pe)))+"\n}", self.weightMem)))
     outFile.write("\n}\n};\n")
-    # write the threshold memory init data
-    # np.save("tresh"+str(varSuffix)+".npy",self.thresMem)
+    
+    if self.numThresIntBits is None:
+      # do saturation
+      temp = np.asarray(self.thresMem)
+      saturate_max = (2**(self.numThresBits-1))-1
+      saturate_min = -(2**(self.numThresBits-1))
+      temp = np.clip(temp, saturate_min, saturate_max)
+      self.thresMem = temp.tolist()
+
     if (self.numThresholds==1):
         outFile.write("ThresholdsActivation<%d,%d,%d,%s,%s> threshs%s = {\n{\n" % (self.thresMemDepth, self.numPE, self.numThresholds, tMemType, ActType, varSuffix))
         outFile.write(",".join(map(lambda pe:"{\n"+(",\n".join(map(str, pe) ))+"\n}", self.thresMem)))

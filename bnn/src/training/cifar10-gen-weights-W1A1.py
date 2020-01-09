@@ -36,8 +36,8 @@ from finnthesizer import *
 if __name__ == "__main__":
     bnnRoot = "."
     npzFile = bnnRoot + "/cifar10-1w-1a.npz"
-    targetDirBin = bnnRoot + "/binparam-cnvW1A1-pynq"
-    targetDirHLS = bnnRoot + "/binparam-cnvW1A1-pynq/hw"
+    targetDirBin = bnnRoot + "/cnvW1A1"
+    targetDirHLS = bnnRoot + "/cnvW1A1/hw"
 
     #topology of convolutional layers (only for config.h defines)
     ifm       = [32, 30,  14,  12,   5,   3]
@@ -46,12 +46,14 @@ if __name__ == "__main__":
     ofm_ch    = [64, 64, 128, 128, 256, 256]   
     filterDim = [ 3,  3,   3,   3,   3,   3]
 
-    WeightsPrecisions_fractional =    [0 , 0 , 0 , 0 , 0 , 0 , 0, 0,  0]
-    ActivationPrecisions_fractional = [0 , 0 , 0 , 0 , 0 , 0 , 0, 0,  0]
-    InputPrecisions_fractional =      [7 , 0 , 0 , 0 , 0 , 0 , 0, 0,  0]
     WeightsPrecisions_integer =       [1 , 1 , 1 , 1 , 1 , 1 , 1, 1,  1]
-    ActivationPrecisions_integer =    [1 , 1 , 1 , 1 , 1 , 1 , 1, 1,  1]
+    WeightsPrecisions_fractional =    [0 , 0 , 0 , 0 , 0 , 0 , 0, 0,  0]
+    
     InputPrecisions_integer =         [1 , 1 , 1 , 1 , 1 , 1 , 1, 1,  1]
+    InputPrecisions_fractional =      [7 , 0 , 0 , 0 , 0 , 0 , 0, 0,  0]
+    
+    ActivationPrecisions_integer =    [1 , 1 , 1 , 1 , 1 , 1 , 1, 1,  1]
+    ActivationPrecisions_fractional = [0 , 0 , 0 , 0 , 0 , 0 , 0, 0,  0]
 
     classes = ['Airplane', 'Automobile', 'Bird', 'Cat', 'Deer', 'Dog', 'Frog', 'Horse', 'Ship', 'Truck']
 
@@ -96,14 +98,14 @@ if __name__ == "__main__":
         print "WMem = %d TMem = %d" % (neededWMem, neededTMem)
         print "IPrecision = %d.%d WPrecision = %d.%d APrecision = %d.%d" % (IPrecision_integer, IPrecision_fractional, WPrecision_integer,WPrecision_fractional, APrecision_integer, APrecision_fractional)
 
-        m = BNNProcElemMem(peCount, simdCount, neededWMem, neededTMem, WPrecision_integer, APrecision_integer, IPrecision_integer, WPrecision_fractional, APrecision_fractional, IPrecision_fractional)
+        m = BNNProcElemMem(peCount, simdCount, neededWMem, neededTMem, WPrecision_integer, APrecision_integer, IPrecision_integer, WPrecision_fractional, APrecision_fractional, IPrecision_fractional, numThresBits=24, numThresIntBits=16)
         m.addMatrix(w,t,paddedW,paddedH)
 
 
         config += (printConvDefines("L%d" % convl, filterDim[convl], ifm_ch[convl], ifm[convl], ofm_ch[convl], ofm[convl], simdCount, peCount, neededWMem, neededTMem, WPrecision_integer, APrecision_integer, WPrecision_fractional, APrecision_fractional)) + "\n" 
 
         #generate HLS weight and threshold header file to initialize memory directly on bitstream generation       
-        #m.createHLSInitFiles(targetDirHLS + "/memdata-" + str(convl) + ".h", str(convl))
+        # m.createHLSInitFiles(targetDirHLS + "/memdata-" + str(convl) + ".h", str(convl))
 
         #generate binary weight and threshold files to initialize memory during runtime
         #because HLS might not work for very large header files        
@@ -127,7 +129,7 @@ if __name__ == "__main__":
         config += (printConvDefines("L%d" % convl, filterDim[convl], ifm_ch[convl], ifm[convl], ofm_ch[convl], ofm[convl], simdCount, peCount, neededWMem, neededTMem, WPrecision_integer, APrecision_integer, WPrecision_fractional, APrecision_fractional)) + "\n" 
 
         #generate HLS weight and threshold header file to initialize memory directly on bitstream generation        
-        #m.createHLSInitFiles(targetDirHLS + "/memdata-" + str(convl) + ".h", str(convl))
+        # m.createHLSInitFiles(targetDirHLS + "/memdata-" + str(convl) + ".h", str(convl))
 
         #generate binary weight and threshold files to initialize memory during runtime
         #because HLS might not work for very large header files        
@@ -169,7 +171,7 @@ if __name__ == "__main__":
       config += (printFCDefines("L%d" % fcl, simdCount, peCount, neededWMem, neededTMem, paddedW, paddedH, WPrecision_integer, APrecision_integer, WPrecision_fractional, APrecision_fractional)) + "\n" 
 
       #generate HLS weight and threshold header file to initialize memory directly on bitstream generation
-      #m.createHLSInitFiles(targetDirHLS + "/memdata-" + str(fcl) + ".h", str(fcl))
+      # m.createHLSInitFiles(targetDirHLS + "/memdata-" + str(fcl) + ".h", str(fcl))
 
       #generate binary weight and threshold files to initialize memory during runtime
       #because HLS might not work for very large header files        
