@@ -197,7 +197,7 @@
 #define L8_MW 512
 #define L8_MH 64
 #define L8_WPI 1
-#define L8_API 1
+#define L8_API 16
 #define L8_WPF 0
 #define L8_APF 0
 

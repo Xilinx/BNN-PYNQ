@@ -74,5 +74,5 @@ Following the step-by-step instructions:
 	- hls-syn: contains the Vivado HLS generated RTL and IP (in the subfolder named as the target network and target platform);
 	- report: contains the Vivado and Vivado HLS reports;
 	- vivado: contains the Vivado project;
-6.	Copy the generated bitstream and tcl script on the PYNQ board `pip_installation_path/bnn/bitstreams/`
+6.	Copy the generated bitstream, hwh and tcl script on the PYNQ board `pip_installation_path/bnn/bitstreams/`
 
