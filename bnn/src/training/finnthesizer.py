@@ -307,8 +307,7 @@ class BNNWeightReader:
         # if the interleave flag is set, permute elements in each row
         if self.interleaveChannels and self.numInterleaveChannels != 0:
             print("Interleaving %d channels in fully connected layer..." % self.numInterleaveChannels)
-            pixPerChan = Wb.shape[1] // self.numInterleaveChannels
-            Wb = Wb.reshape(Wb.shape[0], pixPerChan, -1)
+            Wb = Wb.reshape(Wb.shape[0], self.numInterleaveChannels, -1)
             Wb = Wb.swapaxes(1,-1).reshape(Wb.shape[0], -1)
             # set interleave to zero once we go past this fc layer
             self.numInterleaveChannels = 0
@@ -346,8 +345,7 @@ class BNNWeightReader:
         # if the interleave flag is set, permute elements in each row
         if self.interleaveChannels and self.numInterleaveChannels != 0:
             print("Interleaving %d channels in fully connected layer..." % self.numInterleaveChannels)
-            pixPerChan = Wb.shape[1] // self.numInterleaveChannels
-            Wb = Wb.reshape(Wb.shape[0], pixPerChan, -1)
+            Wb = Wb.reshape(Wb.shape[0], self.numInterleaveChannels, -1)
             Wb = Wb.swapaxes(1,-1).reshape(Wb.shape[0], -1)
             # set interleave to zero once we go past this fc layer
             self.numInterleaveChannels = 0
