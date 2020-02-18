@@ -532,7 +532,7 @@ class BNNProcElemMem:
                     arguments numThresBits and numThresIntBits to ensure correct fractional shift.")
         else:
             mem = mem * (1 << (self.numThresBits - self.numThresIntBits))
-        mem.astype(np.uint64).tofile(fileName)
+        mem.astype(np.int64).tofile(fileName)
 
     
     def createBinFiles(self, targetDir, prefix="", useThresholds=True):
