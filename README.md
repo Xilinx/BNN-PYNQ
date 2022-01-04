@@ -10,6 +10,9 @@ Now, there are multiple implementations available supporting different precision
 
 We support 3 boards for hardware acceleration which are Pynq-Z1, Pynq-Z2 and Ultra96 (with PYNQ image).
 
+Note, this repository has now been archived and is no longer being actively maintained.
+If you are relying on this repository, we strongly recommend you switch to the [FINN compiler](https://github.com/xilinx/finn).
+
 ## Citation
 If you find BNN-PYNQ useful, please cite the <a href="https://arxiv.org/abs/1612.07119" target="_blank">FINN paper</a>:
 
